@@ -264,9 +264,8 @@ func (s *session) PrepareUpdate(build string) *dbus.Error {
 	return nil
 }
 
-// FinishUpdate is sent without expecting a reply, after PrepareUpdate has
-// acknowledged the request. This avoids dropping that acknowledgement when
-// shutdown closes the D-Bus connection.
+// FinishUpdate begins shutdown after PrepareUpdate acknowledges the request.
+// The caller observes bus-name release because process exit can race the reply.
 func (s *session) FinishUpdate(build string) *dbus.Error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
