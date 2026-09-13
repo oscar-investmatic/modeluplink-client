@@ -4,11 +4,12 @@ package engine
 
 import (
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
 	"os"
 	"runtime"
 	"strings"
 	"syscall"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
 )
 
 func detectRAM() uint64 {

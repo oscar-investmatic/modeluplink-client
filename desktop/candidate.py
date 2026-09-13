@@ -4,12 +4,13 @@
 This is deliberately not the website's publication manifest. Signing and human
 acceptance remain separate, required release gates.
 """
+
 import argparse
 import hashlib
 import json
-from pathlib import Path
 import re
-import subprocess
+from pathlib import Path
+
 import source
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,7 +29,10 @@ def record(target):
     commit = source.identity(ROOT)["revision"]
     if target.startswith("linux-"):
         arch = target.removeprefix("linux-")
-        names = [f"linux/modeluplink_{version}_linux_{arch}.deb", f"linux/modeluplink-desktop_{version}_linux_{arch}.tar.gz"]
+        names = [
+            f"linux/modeluplink_{version}_linux_{arch}.deb",
+            f"linux/modeluplink-desktop_{version}_linux_{arch}.tar.gz",
+        ]
         signing = "APT repository signing required for distribution"
     elif target == "macos-arm64":
         names = [f"macos/modeluplink_{version}_darwin_arm64.adhoc.zip"]
@@ -37,8 +41,16 @@ def record(target):
         names = [f"windows/modeluplink_{version}_windows_amd64.unsigned.exe"]
         signing = "unsigned; Authenticode required for distribution"
     files = [{"name": Path(name).name, "sha256": digest(ROOT / "dist" / name)} for name in names]
-    manifest = {"format": 1, "version": version, "commit": commit, "target": target,
-                "files": files, "signing": signing, "hardware_acceptance": "pending", "publishable": False}
+    manifest = {
+        "format": 1,
+        "version": version,
+        "commit": commit,
+        "target": target,
+        "files": files,
+        "signing": signing,
+        "hardware_acceptance": "pending",
+        "publishable": False,
+    }
     output = ROOT / "dist/candidates" / f"{target}.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(manifest, indent=2) + "\n")
@@ -67,7 +79,9 @@ def verify(directory):
     if len(origins) != 1:
         raise ValueError("Candidates were built from different versions or commits")
     version, commit = origins.pop()
-    print(f"All four candidates match version {version}, commit {commit}, and their SHA-256 hashes. Hardware acceptance and release signing remain required.")
+    print(
+        f"All four candidates match version {version}, commit {commit}, and their SHA-256 hashes. Hardware acceptance and release signing remain required."
+    )
 
 
 if __name__ == "__main__":

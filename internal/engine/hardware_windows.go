@@ -1,9 +1,10 @@
 package engine
 
 import (
-	"golang.org/x/sys/windows"
 	"os"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 func detectRAM() uint64 {

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fyne.io/fyne/v2/widget"
 	"testing"
+
+	"fyne.io/fyne/v2/widget"
 )
 
 func TestStartupToggleWaitsForHelperAndRestoresOnFailure(t *testing.T) {

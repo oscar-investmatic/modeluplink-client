@@ -4,13 +4,14 @@ package service
 
 import (
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
-	"github.com/oscar-investmatic/modeluplink-client/pkg/security"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
+	"github.com/oscar-investmatic/modeluplink-client/pkg/security"
 )
 
 // RetireCurrent is called by the agent itself after tunnel cancellation and

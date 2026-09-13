@@ -1,6 +1,6 @@
 package main
 
-// The app is a thin client of the CLI's private `_desktop` command. Each
+// The app is a thin client of the CLI's internal `_desktop` command. Each
 // action spawns the helper, writes one JSON request to its stdin, and reads
 // newline-delimited JSON from stdout: zero or more progress events followed by
 // exactly one final response. stderr is discarded. Credentials never enter
@@ -11,7 +11,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
 	"io"
 	"os"
 	"os/exec"
@@ -21,6 +20,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
 )
 
 const (

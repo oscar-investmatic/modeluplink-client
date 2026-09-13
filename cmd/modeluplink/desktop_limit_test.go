@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
 	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
+	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
 )
 
 func TestPaidConnectionLimitHonorsAllowance(t *testing.T) {

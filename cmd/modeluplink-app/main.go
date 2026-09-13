@@ -1,7 +1,7 @@
 // Model Uplink desktop app: a native window over the modeluplink CLI's
 // `_desktop` helper protocol. It signs the user in with an emailed code,
-// connects a local Ollama model as a public HTTPS endpoint, and shows the
-// address and API key. See linux/README.md for the helper contract.
+// connects selected local models to an HTTPS endpoint, and shows its address
+// and API key. See internal/desktopcontract for the helper protocol fixtures.
 package main
 
 import (
@@ -56,7 +56,7 @@ func (t uplinkTheme) Color(name fyne.ThemeColorName, _ fyne.ThemeVariant) color.
 	return t.Theme.Color(name, theme.VariantDark)
 }
 
-// Version is the package version, injected at build time by linux/package.sh.
+// Version is the application version injected by the platform packaging scripts.
 var Version = "dev"
 
 func main() {

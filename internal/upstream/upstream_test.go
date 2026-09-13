@@ -77,7 +77,7 @@ func TestDiscoveryNeverFollowsRedirectsOrAcceptsChatPages(t *testing.T) {
 	var hits atomic.Int32
 	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { hits.Add(1) }))
 	defer target.Close()
-	redirect := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, target.URL, 302) }))
+	redirect := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, target.URL, http.StatusFound) }))
 	defer redirect.Close()
 	_, err := (Connection{URL: redirect.URL, Key: "secret"}).Models(context.Background())
 	if err == nil || hits.Load() != 0 {

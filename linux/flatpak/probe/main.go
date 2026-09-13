@@ -6,8 +6,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/zalando/go-keyring"
 	"os"
+
+	"github.com/zalando/go-keyring"
 )
 
 func main() {

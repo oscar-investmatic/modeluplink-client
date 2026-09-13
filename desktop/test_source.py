@@ -1,12 +1,13 @@
 import importlib.util
-from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from pathlib import Path
 
 spec = importlib.util.spec_from_file_location("source", Path(__file__).with_name("source.py"))
 source = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(source)
+
 
 class SourceTests(unittest.TestCase):
     def setUp(self):

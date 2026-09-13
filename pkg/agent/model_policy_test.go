@@ -2,7 +2,6 @@ package agent
 
 import (
 	"context"
-	"github.com/oscar-investmatic/modeluplink-client/pkg/security"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +9,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/pkg/security"
 )
 
 func TestModelSelectionFiltersDiscoveryAndBlocksInference(t *testing.T) {

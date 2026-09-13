@@ -5,19 +5,19 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/oscar-investmatic/modeluplink-client/internal/service"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/service"
 )
 
-// CheckModel performs a tiny local inference, not a billed public request.
-// Unload after checking so validating several models does not keep them resident.
-// checkModelTimeout allows a cold first load of an 8B-class model on a slow
-// disk; a warm model answers in seconds.
+// checkModelTimeout allows for a cold model load on a slow disk.
 const checkModelTimeout = 4 * time.Minute
 
+// CheckModel verifies a local Ollama generation and requests unloading afterward
+// with keep_alive=0. It does not send inference through the hosted service.
 func CheckModel(ctx context.Context, baseURL, model string) error {
 	ctx, cancel := context.WithTimeout(ctx, checkModelTimeout)
 	defer cancel()
@@ -34,10 +34,8 @@ func CheckModel(ctx context.Context, baseURL, model string) error {
 	defer response.Body.Close()
 	var result struct {
 		Response string `json:"response"`
-		// Thinking models (Qwen 3, DeepSeek R1) spend their first token on the
-		// opening think tag, which Ollama swallows: response and thinking are
-		// both empty even though the model loaded and generated. A completed
-		// generation with a done reason or a token count is the real proof.
+		// A one-token reasoning-model probe can finish without visible text.
+		// Accept completion metadata as well as response or thinking content.
 		Thinking   string `json:"thinking"`
 		Done       bool   `json:"done"`
 		DoneReason string `json:"done_reason"`
@@ -45,10 +43,10 @@ func CheckModel(ctx context.Context, baseURL, model string) error {
 		Error      string `json:"error"`
 	}
 	if response.StatusCode != 200 || json.NewDecoder(io.LimitReader(response.Body, 1<<20)).Decode(&result) != nil || result.Error != "" || !result.Done {
-		return errors.New("the selected model could not answer on this Mac; choose a smaller model or free memory")
+		return errors.New("the selected model could not answer on this computer; choose a smaller model or free memory")
 	}
 	if result.Response == "" && result.Thinking == "" && result.DoneReason == "" && result.EvalCount == 0 {
-		return errors.New("the selected model could not answer on this Mac; choose a smaller model or free memory")
+		return errors.New("the selected model could not answer on this computer; choose a smaller model or free memory")
 	}
 	return nil
 }

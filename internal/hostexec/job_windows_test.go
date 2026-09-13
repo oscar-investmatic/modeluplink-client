@@ -2,12 +2,13 @@ package hostexec
 
 import (
 	"context"
-	"golang.org/x/sys/windows"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/sys/windows"
 )
 
 func TestManagedJobKillsDescendantWhenRuntimeExits(t *testing.T) {

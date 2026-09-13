@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"golang.org/x/crypto/acme/autocert"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"golang.org/x/crypto/acme/autocert"
 )
 
 func TestCertificateCacheProtectsPrivateKeys(t *testing.T) {

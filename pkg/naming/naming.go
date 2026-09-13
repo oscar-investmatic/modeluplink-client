@@ -46,7 +46,7 @@ var missionNouns = []string{
 
 // NewTrialSlug returns a temporary mission call sign such as
 // try-brave-otter-27. The number is two or three digits; together with the two
-// word lists it gives the pilot millions of possibilities, and provisioning
+// word lists it gives millions of possibilities, and provisioning
 // still retries the authoritative global uniqueness check.
 func NewTrialSlug() (string, error) {
 	adjective, err := randomIndex(len(adjectives))

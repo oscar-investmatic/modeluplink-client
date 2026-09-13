@@ -12,7 +12,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 	"io"
 	"net"
 	"net/http"
@@ -24,6 +23,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 
 	mtunnel "github.com/oscar-investmatic/modeluplink-client/pkg/tunnel"
 )

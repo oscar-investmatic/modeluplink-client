@@ -3,11 +3,12 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 )
 
 func TestWindowsTaskCredentialsStayOutOfDefinitionAndArguments(t *testing.T) {

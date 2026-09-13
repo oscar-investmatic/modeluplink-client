@@ -3,9 +3,10 @@ package localconfig
 import (
 	"bytes"
 	"errors"
-	"golang.org/x/sys/windows"
 	"os"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 var protectedPrefix = []byte("MUP-DPAPI\x00")

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
-	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 	"sort"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
+	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
 )
 
 const connectionLimitMessage = "Your account has reached its connection limit. Offline connections still count. Open your dashboard to manage your existing connections."

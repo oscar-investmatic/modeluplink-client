@@ -6,9 +6,9 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
-// Inference keys live in the desktop keyring (Secret Service on Linux,
-// Keychain on macOS) under one service, keyed by endpoint slug. The CLI's
-// 0600 configuration holds the account session; the app never stores it.
+// Inference keys use Secret Service on Linux or Credential Manager on Windows,
+// keyed by endpoint slug. The helper owns account-session storage; the GUI keeps
+// newly issued inference keys in memory so a keyring failure does not lose them.
 const keyringService = "Model Uplink"
 
 var errKeyring = errors.New("Your key couldn’t be saved in the system keyring. You can still copy it now.")

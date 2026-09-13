@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fyne.io/fyne/v2"
-	"golang.org/x/sys/windows"
 	"os"
 	"unsafe"
+
+	"fyne.io/fyne/v2"
+	"golang.org/x/sys/windows"
 )
 
 func desktopInstance() (func(), bool) {

@@ -17,9 +17,13 @@ flatpak info org.freedesktop.Platform//25.08 > "$output/runtime.txt"
 canary="$(mktemp "$HOME/.modeluplink-flatpak-canary.XXXXXX")"
 trap 'rm -f "$canary" "$HOME/.var/app/com.modeluplink.app/data/keyring-probe"' EXIT
 printf 'sandbox isolation test\n' > "$canary"
+# Expand XDG paths inside the sandbox, not in the host shell.
+# shellcheck disable=SC2016
 flatpak run --command=sh com.modeluplink.app -c 'test ! -e "$1" && test -w "$XDG_CONFIG_HOME" && test -w "$XDG_DATA_HOME"' sh "$canary"
 printf 'Host home file inaccessible; app XDG directories writable.\n' > "$output/isolation.txt"
 install -m755 "$probe" "$HOME/.var/app/com.modeluplink.app/data/keyring-probe"
+# Expand XDG paths inside the sandbox, not in the host shell.
+# shellcheck disable=SC2016
 flatpak run --command=sh com.modeluplink.app -c 'exec "$XDG_DATA_HOME/keyring-probe"' > "$output/keyring.json"
 flatpak run --command=modeluplink com.modeluplink.app _desktop > "$output/source.json" <<'JSON'
 {"action":"test_source","local_url":"http://127.0.0.1:11434/v1","model":"gemma3:1b"}

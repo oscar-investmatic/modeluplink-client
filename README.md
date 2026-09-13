@@ -26,7 +26,7 @@ native desktop integration. [CLI instructions](docs/cli-release/README.md).
 Native packaging requires a clean commit in this repository, including newly
 created files. Commit local changes before packaging your own build.
 
-- macOS arm64: `bash macos/test.sh`, then `bash macos/package.sh` (Xcode/Command Line Tools).
+- macOS arm64: `bash macos/test.sh`, then `bash macos/build.sh` (Xcode/Command Line Tools).
 - Linux: `bash linux/build.sh amd64` or `arm64` (Docker with buildx).
 - Windows amd64: `./windows/build.ps1 -Unsigned` (Go, MinGW, Inno Setup 6, Python).
 - Flatpak: [build and sandbox details](linux/flatpak/README.md).
@@ -34,18 +34,23 @@ created files. Commit local changes before packaging your own build.
 Local macOS builds use ad-hoc signatures. Windows `-Unsigned` installers have no
 publisher signature. Production desktop distribution also requires platform
 signing and the acceptance checks described in [RELEASING.md](RELEASING.md).
+`macos/package.sh` signs and notarizes a release DMG and requires Developer ID
+and notarytool credentials; it is not the local development build command.
+See [docs/architecture.md](docs/architecture.md) for the main code and trust boundaries.
 
 ## Source and releases
 
-Client changes and contributions belong here. The private service consumes the
-public `pkg/` and `proto/` packages at a pinned revision. It must not maintain a
-second copy of their implementation. Wire changes must remain compatible with
+Client changes and contributions belong here. The repository split is in progress:
+backend compatibility has been tested against the extracted `pkg/` and `proto/`
+packages, but the hosted-service cutover has not been completed. After cutover,
+the private service will consume a pinned public revision of these packages. Wire changes must remain compatible with
 supported client versions; generated protocol code is committed with its schema.
 
 Packaged clients link to their source commit from Settings. `modeluplink version
 --json` reports the helper version, revision, modification state, and source URL.
-Release artifacts have checksums and CI build attestations. These establish build
-provenance; we have not demonstrated byte-for-byte reproducibility across machines.
+The configured CLI release workflow produces checksums and CI build attestations;
+no release has run from this repository yet. Desktop installer attestations are
+still pending. We have not demonstrated byte-for-byte reproducibility across machines.
 
 Version 0.4.0 is the upcoming public-client release. Older website installers and
 the earlier Flatpak preview predate this repository and are not claimed to have

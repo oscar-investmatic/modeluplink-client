@@ -1,6 +1,9 @@
 package main
 
 import (
+	"net/url"
+	"runtime"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
@@ -9,8 +12,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/oscar-investmatic/modeluplink-client/internal/buildinfo"
 	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
-	"net/url"
-	"runtime"
 )
 
 // Lifecycle controls are shared by Linux and Windows; the service adapters own

@@ -12,8 +12,9 @@ import (
 	"time"
 )
 
-// Model selection is enforced locally, inside the endpoint's TLS boundary.
-// A nil list preserves legacy CLI configurations. New Ollama setups set it.
+// sharedModel checks the exact model ID selected for this endpoint.
+// checkModel bypasses selection only for older, non-OpenAI-compatible profiles
+// whose SharedModels field is absent. An explicit empty list shares no models.
 func (h *localInference) sharedModel(name string) bool {
 	for _, allowed := range h.config.SharedModels {
 		if name == allowed {
@@ -100,6 +101,7 @@ func (h *localInference) modelList(w http.ResponseWriter, response *http.Respons
 	_ = json.NewEncoder(w).Encode(body)
 }
 
+// Activity reports model occupancy and queue lengths without prompt content.
 type Activity struct {
 	Model     string    `json:"model"`
 	Running   int       `json:"running"`

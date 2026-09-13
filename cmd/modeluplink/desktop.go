@@ -6,8 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
-	"github.com/oscar-investmatic/modeluplink-client/internal/service"
 	"io"
 	"os"
 	"sort"
@@ -15,13 +13,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oscar-investmatic/modeluplink-client/pkg/agent"
-	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
+	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
+	"github.com/oscar-investmatic/modeluplink-client/internal/service"
+
 	"github.com/oscar-investmatic/modeluplink-client/internal/engine"
 	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
+	"github.com/oscar-investmatic/modeluplink-client/internal/upstream"
+	"github.com/oscar-investmatic/modeluplink-client/pkg/agent"
+	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
 	"github.com/oscar-investmatic/modeluplink-client/pkg/naming"
 	"github.com/oscar-investmatic/modeluplink-client/pkg/security"
-	"github.com/oscar-investmatic/modeluplink-client/internal/upstream"
 )
 
 type desktopRequest struct {

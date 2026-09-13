@@ -14,6 +14,8 @@ var reservedSlugs = map[string]struct{}{
 	"support": {}, "security": {}, "mail": {}, "smtp": {}, "staging": {}, "dev": {},
 }
 
+// ValidateSlug enforces endpoint-name syntax and rejects reserved names.
+// Availability and global uniqueness are checked by the control API.
 func ValidateSlug(slug string) error {
 	if slug != strings.ToLower(slug) || !slugPattern.MatchString(slug) {
 		return errors.New("endpoint name must be 3-48 lowercase letters, digits, or single hyphen-separated words")

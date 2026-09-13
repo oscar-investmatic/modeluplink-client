@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
-	"github.com/oscar-investmatic/modeluplink-client/internal/upstream"
 	"sync"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
+	"github.com/oscar-investmatic/modeluplink-client/internal/upstream"
 )
 
 type localServer struct {

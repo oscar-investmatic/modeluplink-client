@@ -9,9 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
-	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
-	"github.com/oscar-investmatic/modeluplink-client/internal/service"
 	"io"
 	"net"
 	"net/http"
@@ -21,6 +18,10 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
+	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
+	"github.com/oscar-investmatic/modeluplink-client/internal/service"
 )
 
 const ollamaVersion = "0.30.8"

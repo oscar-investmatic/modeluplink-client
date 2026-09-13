@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/oscar-investmatic/modeluplink-client/internal/desktopcontract"
 	"testing"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/desktopcontract"
 )
 
 // Decode/re-encode with the producer's real types so a removed/renamed field

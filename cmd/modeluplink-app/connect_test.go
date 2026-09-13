@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fyne.io/fyne/v2/test"
 	"strings"
 	"testing"
+
+	"fyne.io/fyne/v2/test"
 )
 
 func TestExistingServerIsPrimaryAndNeedsReadiness(t *testing.T) {

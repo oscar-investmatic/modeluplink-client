@@ -7,9 +7,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/buildinfo"
-	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
-	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
 	"io"
 	"log/slog"
 	"net/http"
@@ -23,6 +20,10 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/buildinfo"
+	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
+	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
 
 	"github.com/oscar-investmatic/modeluplink-client/internal/engine"
 	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
@@ -519,9 +520,8 @@ func entitled(account client.Account) bool {
 	return account.BillingState == "active" || account.BillingState == "grace"
 }
 
-// ensureEntitlement decides how serve may create an endpoint: paid accounts
-// as today, accounts with a free trial available or active in trial mode, and
-// accounts whose trial is over only after Stripe Checkout completes.
+// ensureEntitlement allows paid accounts and available or active trials to
+// create an endpoint. It opens checkout only when neither allowance applies.
 func ensureEntitlement(api *client.Client) (paid, trial bool, err error) {
 	account, err := api.Me(context.Background())
 	if err != nil {
@@ -985,10 +985,9 @@ func agentCommand(args []string) error {
 	return runAgent(endpoint)
 }
 
-// agentExitGrace bounds how long a stop request may take. Whatever is in
-// flight (a model still loading in Ollama, a stuck upstream request), the
-// process must be gone well before systemd's or launchd's stop timeout, or
-// the supervisor SIGKILLs it after 90 s and the desktop app stays busy.
+// agentExitGrace bounds agent shutdown when a runtime or upstream request
+// does not return after cancellation. The watchdog exits before the service
+// manager or Flatpak supervisor reaches its own termination deadline.
 const agentExitGrace = 10 * time.Second
 
 func runAgent(e localconfig.Endpoint) error {

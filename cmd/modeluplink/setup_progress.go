@@ -2,9 +2,10 @@ package main
 
 import (
 	"errors"
-	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
 	"runtime"
 	"strings"
+
+	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
 )
 
 type setupProgress struct {

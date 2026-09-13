@@ -19,11 +19,13 @@ const (
 	MaxFrameSize         = 128 * 1024
 )
 
+// Writer serializes frame writes to one WebSocket connection.
 type Writer struct {
 	Conn *websocket.Conn
 	mu   sync.Mutex
 }
 
+// Write sends one binary protobuf frame with a bounded write deadline.
 func (w *Writer) Write(frame *tunnelv1.Envelope) error {
 	frame.ProtocolVersion = ProtocolVersion
 	payload, err := proto.Marshal(frame)
@@ -36,6 +38,7 @@ func (w *Writer) Write(frame *tunnelv1.Envelope) error {
 	return w.Conn.WriteMessage(websocket.BinaryMessage, payload)
 }
 
+// Read decodes one binary WebSocket message as a tunnel envelope.
 func Read(conn *websocket.Conn) (*tunnelv1.Envelope, error) {
 	messageType, payload, err := conn.ReadMessage()
 	if err != nil {
@@ -69,10 +72,12 @@ var privateRequestHeaders = map[string]struct{}{
 	"x-forwarded-proto": {}, "x-real-ip": {}, "origin": {}, "referer": {},
 }
 
+// RequestHeaders drops hop-by-hop headers, credentials, and agent-consumed origins.
 func RequestHeaders(in http.Header) []*tunnelv1.Header {
 	return filteredHeaders(in, true)
 }
 
+// ResponseHeaders drops hop-by-hop response headers before forwarding.
 func ResponseHeaders(in http.Header) []*tunnelv1.Header {
 	return filteredHeaders(in, false)
 }
@@ -95,6 +100,7 @@ func filteredHeaders(in http.Header, request bool) []*tunnelv1.Header {
 	return out
 }
 
+// ApplyHeaders appends wire headers to dst, excluding hop-by-hop headers.
 func ApplyHeaders(dst http.Header, headers []*tunnelv1.Header) {
 	for _, header := range headers {
 		lower := strings.ToLower(header.Name)

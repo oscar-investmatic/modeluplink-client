@@ -8,16 +8,20 @@ import (
 
 const Repository = "https://github.com/oscar-investmatic/modeluplink-client"
 
-// Revision is injected only after the packaging script verifies a clean checkout.
+// Revision is injected by packaging after checking the source checkout.
+// It is build metadata, not a signature; attestations establish the build origin.
 var Revision string
 var revisionPattern = regexp.MustCompile(`^[a-f0-9]{40}$`)
 
+// Info describes the source metadata embedded in this executable.
 type Info struct {
 	Revision  string `json:"revision"`
 	Modified  bool   `json:"modified"`
 	SourceURL string `json:"source_url"`
 }
 
+// Current prefers the injected revision and otherwise reads Go VCS metadata.
+// Unknown or modified builds link to the repository rather than an exact source tree.
 func Current() Info {
 	result := Info{Revision: Revision, Modified: true, SourceURL: Repository}
 	if Revision != "" {

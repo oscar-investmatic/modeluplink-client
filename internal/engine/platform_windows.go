@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
-	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
+	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 )
 
 func windowsOllamaPaths() []string {

@@ -40,7 +40,7 @@ cat > "$root/usr/share/metainfo/com.modeluplink.app.metainfo.xml" <<METAINFO
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>Apache-2.0</project_license>
   <description>
-    <p>Model Uplink gives the Ollama model running on this computer a permanent, secure HTTPS address that works in any app that speaks the OpenAI API. Sign in with an emailed code, pick a model, and copy your address and key. Traffic is encrypted end to end; the relay never sees a prompt.</p>
+    <p>Model Uplink connects selected models from a local OpenAI-compatible server to an authenticated HTTPS endpoint. Sign in with an emailed code, choose the models to share, and copy your address and key. Managed Ollama setup is also available on supported systems.</p>
     <p>The connection keeps running as a background service after you close the window. Keep the computer awake and online.</p>
   </description>
   <launchable type="desktop-id">com.modeluplink.app.desktop</launchable>

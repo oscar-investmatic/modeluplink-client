@@ -8,15 +8,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
-	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
-	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
-	"github.com/oscar-investmatic/modeluplink-client/internal/service"
-	"github.com/zalando/go-keyring"
-	"golang.org/x/sys/windows"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/hostexec"
+	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
+	"github.com/oscar-investmatic/modeluplink-client/internal/service"
+	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
+	"github.com/zalando/go-keyring"
+	"golang.org/x/sys/windows"
 )
 
 // Installer commands use the current user's protected configuration. They never

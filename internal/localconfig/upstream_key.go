@@ -2,6 +2,7 @@ package localconfig
 
 import (
 	"errors"
+
 	"github.com/zalando/go-keyring"
 )
 

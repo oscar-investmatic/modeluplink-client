@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
 	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
+	"github.com/oscar-investmatic/modeluplink-client/pkg/client"
 )
 
 func TestDesktopExplainsEndpointConflictsWithoutExposingServerDetails(t *testing.T) {

@@ -1,11 +1,12 @@
 package main
 
 import (
+	"net/url"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
-	"net/url"
 )
 
 type localServer struct {

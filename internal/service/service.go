@@ -4,7 +4,6 @@ package service
 
 import (
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
 
 	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 	"github.com/oscar-investmatic/modeluplink-client/pkg/security"

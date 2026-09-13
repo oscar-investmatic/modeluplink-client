@@ -203,7 +203,8 @@ func ProtectSecrets(data []byte) ([]byte, error) { return protectPayload(data) }
 // UnprotectSecrets reads a serialized credential file protected for the current user.
 func UnprotectSecrets(data []byte) ([]byte, error) { return unprotectPayload(data) }
 
-// Missing ownership preserves legacy managed Ollama behavior.
+// ManagesRuntime reports whether this endpoint owns its Ollama process.
+// Missing ownership preserves the behavior of older managed-Ollama profiles.
 func (e Endpoint) ManagesRuntime() bool {
 	return e.Engine == "ollama" && e.RuntimeOwnership != "external"
 }

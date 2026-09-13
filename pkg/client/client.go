@@ -12,16 +12,21 @@ import (
 	"time"
 )
 
+// Client calls the control API with an account session token.
+// Configure its fields before use; do not mutate them during concurrent requests.
 type Client struct {
 	BaseURL string
 	Token   string
 	HTTP    *http.Client
 }
 
+// New creates a control client with a 30-second HTTP timeout.
+// An empty token is sufficient for unauthenticated sign-in requests.
 func New(baseURL, token string) *Client {
 	return &Client{BaseURL: strings.TrimRight(baseURL, "/"), Token: token, HTTP: &http.Client{Timeout: 30 * time.Second}}
 }
 
+// Endpoint describes an account-owned connection reported by the control API.
 type Endpoint struct {
 	ID          string   `json:"id"`
 	Slug        string   `json:"slug"`
@@ -34,6 +39,9 @@ type Endpoint struct {
 	CORSOrigins []string `json:"cors_origins"`
 	Trial       bool     `json:"trial"`
 }
+
+// CreatedEndpoint includes the credentials issued when a connection is created.
+// Persist those credentials securely; do not log the response.
 type CreatedEndpoint struct {
 	Endpoint   Endpoint `json:"endpoint"`
 	AgentToken string   `json:"agent_token"`
@@ -48,6 +56,8 @@ type CreatedEndpoint struct {
 	RequestedNameIgnored     bool       `json:"requested_name_ignored"`
 	ReplacedTrialEndpointIDs []string   `json:"replaced_trial_endpoint_ids,omitempty"`
 }
+
+// APIKey contains key metadata, not the reusable secret.
 type APIKey struct {
 	ID         string     `json:"id"`
 	EndpointID string     `json:"endpoint_id"`
@@ -55,6 +65,8 @@ type APIKey struct {
 	CreatedAt  time.Time  `json:"created_at"`
 	RevokedAt  *time.Time `json:"revoked_at,omitempty"`
 }
+
+// Account is the client-visible account and allowance state.
 type Account struct {
 	MaxEndpoints           *int       `json:"max_endpoints,omitempty"`
 	ID                     string     `json:"id"`
@@ -70,6 +82,8 @@ type Account struct {
 	TrialStartedAt         *time.Time `json:"trial_started_at,omitempty"`
 }
 
+// DeviceAuthorization holds the approval codes and polling interval for CLI sign-in.
+// ExpiresIn and Interval are expressed in seconds.
 type DeviceAuthorization struct {
 	DeviceCode string `json:"device_code"`
 	// UserCode is shown to the person so they can confirm, on the emailed
@@ -81,6 +95,7 @@ type DeviceAuthorization struct {
 	Interval                   int    `json:"interval"`
 }
 
+// StartDeviceAuthorization requests an email approval link for CLI sign-in.
 func (c *Client) StartDeviceAuthorization(ctx context.Context, email string) (DeviceAuthorization, error) {
 	var out DeviceAuthorization
 	err := c.doUnauthenticated(ctx, http.MethodPost, "/v1/auth/device/start", map[string]string{"email": email}, &out)
@@ -92,6 +107,9 @@ func (c *Client) StartDeviceAuthorization(ctx context.Context, email string) (De
 func (c *Client) SignOut(ctx context.Context) error {
 	return c.do(ctx, http.MethodPost, "/v1/auth/sign-out", nil, nil)
 }
+
+// PollDeviceAuthorization returns the account token after approval.
+// pending is true while approval is outstanding; callers should respect Interval.
 func (c *Client) PollDeviceAuthorization(ctx context.Context, deviceCode string) (token string, pending bool, err error) {
 	var out struct {
 		AccountToken string `json:"account_token"`
@@ -108,6 +126,7 @@ func (c *Client) PollDeviceAuthorization(ctx context.Context, deviceCode string)
 	return out.AccountToken, false, err
 }
 
+// APIError preserves the control API status and error code. Message is server-supplied.
 type APIError struct {
 	Status        int
 	Code, Message string
@@ -129,11 +148,15 @@ func (c *Client) MoveTrialEndpoint(ctx context.Context, id, displayName, engine,
 	err := c.do(ctx, http.MethodPost, "/v1/endpoints/"+url.PathEscape(id)+"/move-trial", map[string]any{"display_name": displayName, "engine": engine, "region": region, "cors_origins": corsOrigins}, &out)
 	return out, err
 }
+
+// Me returns the current account and its reported service allowances.
 func (c *Client) Me(ctx context.Context) (Account, error) {
 	var out Account
 	err := c.do(ctx, http.MethodGet, "/v1/me", nil, &out)
 	return out, err
 }
+
+// CreateCheckout returns a hosted payment URL; it does not complete a purchase.
 func (c *Client) CreateCheckout(ctx context.Context) (string, error) {
 	var out struct {
 		URL string `json:"url"`
@@ -141,6 +164,8 @@ func (c *Client) CreateCheckout(ctx context.Context) (string, error) {
 	err := c.do(ctx, http.MethodPost, "/v1/billing/checkout", struct{}{}, &out)
 	return out.URL, err
 }
+
+// CreateBillingPortal returns a hosted account billing-management URL.
 func (c *Client) CreateBillingPortal(ctx context.Context) (string, error) {
 	var out struct {
 		URL string `json:"url"`
@@ -148,6 +173,8 @@ func (c *Client) CreateBillingPortal(ctx context.Context) (string, error) {
 	err := c.do(ctx, http.MethodPost, "/v1/billing/portal", struct{}{}, &out)
 	return out.URL, err
 }
+
+// ListEndpoints returns the current account's connections.
 func (c *Client) ListEndpoints(ctx context.Context) ([]Endpoint, error) {
 	var out struct {
 		Data []Endpoint `json:"data"`
@@ -155,9 +182,14 @@ func (c *Client) ListEndpoints(ctx context.Context) ([]Endpoint, error) {
 	err := c.do(ctx, http.MethodGet, "/v1/endpoints", nil, &out)
 	return out.Data, err
 }
+
+// DeleteEndpoint removes the selected connection from the hosted service.
 func (c *Client) DeleteEndpoint(ctx context.Context, id string) error {
 	return c.do(ctx, http.MethodDelete, "/v1/endpoints/"+id, nil, nil)
 }
+
+// CreateKey returns metadata and the newly issued plaintext inference key.
+// The caller must store or display the secret without logging it.
 func (c *Client) CreateKey(ctx context.Context, endpointID, name string) (APIKey, string, error) {
 	var out struct {
 		Key    APIKey `json:"key"`
@@ -166,6 +198,8 @@ func (c *Client) CreateKey(ctx context.Context, endpointID, name string) (APIKey
 	err := c.do(ctx, http.MethodPost, "/v1/endpoints/"+endpointID+"/keys", map[string]string{"name": name}, &out)
 	return out.Key, out.Secret, err
 }
+
+// ListKeys returns key metadata for an endpoint; it does not reveal secrets.
 func (c *Client) ListKeys(ctx context.Context, endpointID string) ([]APIKey, error) {
 	var out struct {
 		Data []APIKey `json:"data"`
@@ -173,6 +207,8 @@ func (c *Client) ListKeys(ctx context.Context, endpointID string) ([]APIKey, err
 	err := c.do(ctx, http.MethodGet, "/v1/endpoints/"+endpointID+"/keys", nil, &out)
 	return out.Data, err
 }
+
+// RevokeKey revokes the selected inference key through the control API.
 func (c *Client) RevokeKey(ctx context.Context, id string) error {
 	return c.do(ctx, http.MethodDelete, "/v1/keys/"+id, nil, nil)
 }
@@ -229,7 +265,7 @@ func (c *Client) request(ctx context.Context, method, path string, input, output
 	return nil
 }
 
-// StartEmailCode begins the email-code sign-in shared by the website and the native Mac app.
+// StartEmailCode begins the email-code sign-in shared by the website and desktop apps.
 func (c *Client) StartEmailCode(ctx context.Context, email string) (string, error) {
 	var out struct {
 		ChallengeID string `json:"challenge_id"`
@@ -238,6 +274,7 @@ func (c *Client) StartEmailCode(ctx context.Context, email string) (string, erro
 	return out.ChallengeID, err
 }
 
+// VerifyEmailCode exchanges an email challenge and code for a session and account.
 func (c *Client) VerifyEmailCode(ctx context.Context, challenge, code string) (string, Account, error) {
 	var out struct {
 		SessionToken string  `json:"session_token"`

@@ -21,16 +21,16 @@ struct ModelActivity: Codable, Sendable {
     let waiting: Int
 }
 struct LocalServer: Codable, Sendable {
- let url: String
- let status: String
- var message: String?
- let models: [String]?
- let ownership: String
+    let url: String
+    let status: String
+    var message: String?
+    let models: [String]?
+    let ownership: String
 }
 struct Reply: Codable, Sendable {
- var source: LocalServer?
- var servers: [LocalServer]?
- var local_sources: [String: LocalServer]?
+    var source: LocalServer?
+    var servers: [LocalServer]?
+    var local_sources: [String: LocalServer]?
     var startup_enabled: Bool?
     var other_trial: Endpoint?
     var connection_limit: Endpoint?
@@ -82,7 +82,9 @@ struct HelperStream {
                 updates.append(try JSONDecoder().decode(SetupProgress.self, from: line))
             } else if header.event == nil {
                 reply = try JSONDecoder().decode(Reply.self, from: line)
-            } else { throw AppError.helper }
+            } else {
+                throw AppError.helper
+            }
         }
         guard buffer.count < 1_048_576 else { throw AppError.helper }
         return updates
@@ -97,12 +99,15 @@ struct HelperStream {
 // Serialized helper requests over anonymous pipes; no shell, localhost server,
 // session tokens in argv, or terminal output exposed in the interface.
 protocol DesktopHelper: Sendable {
-    func request(_ fields: [String: String], onProgress: @Sendable (SetupProgress) async -> Void) async throws -> Reply
+    func request(_ fields: [String: String], onProgress: @Sendable (SetupProgress) async -> Void)
+        async throws -> Reply
 }
 
 actor Bridge: DesktopHelper {
     private var helper: URL?
-    func request(_ fields: [String: String], onProgress: @Sendable (SetupProgress) async -> Void) async throws -> Reply {
+    func request(_ fields: [String: String], onProgress: @Sendable (SetupProgress) async -> Void)
+        async throws -> Reply
+    {
         let executable = try prepareHelper()
         let process = Process()
         process.executableURL = executable
@@ -118,7 +123,7 @@ actor Bridge: DesktopHelper {
         // when launched from Finder. Release builds contain neither key.
         let previewSettings = [
             "MODELUPLINK_CONTROL_URL": "ModelUplinkPreviewControlURL",
-            "MODELUPLINK_CONFIG_DIR": "ModelUplinkPreviewConfigDirectory"
+            "MODELUPLINK_CONFIG_DIR": "ModelUplinkPreviewConfigDirectory",
         ]
         for (variable, key) in previewSettings where environment[variable] == nil {
             if let value = Bundle.main.object(forInfoDictionaryKey: key) as? String {
@@ -139,7 +144,8 @@ actor Bridge: DesktopHelper {
             try? input.fileHandleForWriting.close()
             try? output.fileHandleForReading.close()
         }
-        try input.fileHandleForWriting.write(contentsOf: JSONSerialization.data(withJSONObject: fields))
+        try input.fileHandleForWriting.write(
+            contentsOf: JSONSerialization.data(withJSONObject: fields))
         try input.fileHandleForWriting.close()
         var stream = HelperStream()
         while true {
@@ -158,18 +164,22 @@ actor Bridge: DesktopHelper {
 
     private func prepareHelper() throws -> URL {
         if let helper { return helper }
-        guard let source = Bundle.main.url(forResource: "modeluplink", withExtension: nil) else { throw AppError.helper }
+        guard let source = Bundle.main.url(forResource: "modeluplink", withExtension: nil) else {
+            throw AppError.helper
+        }
         // Copy into a stable, versioned location so moving the app or ejecting
         // its installer cannot break launchd. Preserve the embedded signature.
         let bytes = try Data(contentsOf: source)
         let digest = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
         let root = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Application Support/Model Uplink/helpers/\(digest)")
-        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        try FileManager.default.createDirectory(
+            at: root, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         let destination = root.appendingPathComponent("modeluplink")
         if !FileManager.default.fileExists(atPath: destination.path) {
             try bytes.write(to: destination, options: .atomic)
-            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: destination.path)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o700], ofItemAtPath: destination.path)
         }
         helper = destination
         return destination
@@ -188,9 +198,11 @@ enum AppError: LocalizedError {
 
 enum KeyStore {
     private static func query(_ id: String) -> [String: Any] {
-        [kSecClass as String: kSecClassGenericPassword,
-         kSecAttrService as String: "com.modeluplink.mac.endpoint",
-         kSecAttrAccount as String: id]
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "com.modeluplink.mac.endpoint",
+            kSecAttrAccount as String: id,
+        ]
     }
     static func save(_ key: String, for id: String) throws {
         let attributes = [kSecValueData as String: Data(key.utf8)]
@@ -199,15 +211,20 @@ enum KeyStore {
             var item = query(id)
             item[kSecValueData as String] = Data(key.utf8)
             item[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
-            guard SecItemAdd(item as CFDictionary, nil) == errSecSuccess else { throw AppError.keychain }
-        } else if status != errSecSuccess { throw AppError.keychain }
+            guard SecItemAdd(item as CFDictionary, nil) == errSecSuccess else {
+                throw AppError.keychain
+            }
+        } else if status != errSecSuccess {
+            throw AppError.keychain
+        }
     }
     static func read(_ id: String) -> String? {
         var item = query(id)
         item[kSecReturnData as String] = true
         var result: CFTypeRef?
         guard SecItemCopyMatching(item as CFDictionary, &result) == errSecSuccess,
-              let data = result as? Data else { return nil }
+            let data = result as? Data
+        else { return nil }
         return String(data: data, encoding: .utf8)
     }
     static func remove(_ id: String) { SecItemDelete(query(id) as CFDictionary) }

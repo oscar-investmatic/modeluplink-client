@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
 	"testing"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
 )
 
 func TestDesktopPreservesFlatpakPermissionDenial(t *testing.T) {

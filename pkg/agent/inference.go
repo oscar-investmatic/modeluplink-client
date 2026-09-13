@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/oscar-investmatic/modeluplink-client/internal/upstream"
 	"github.com/oscar-investmatic/modeluplink-client/pkg/security"
 	mtunnel "github.com/oscar-investmatic/modeluplink-client/pkg/tunnel"
-	"github.com/oscar-investmatic/modeluplink-client/internal/upstream"
 )
 
 const (

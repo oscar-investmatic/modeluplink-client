@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 )
 
 func TestRevokedConnectionUnloadsBeforeRemovingAutoStart(t *testing.T) {

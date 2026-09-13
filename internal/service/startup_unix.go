@@ -5,12 +5,13 @@ package service
 import (
 	"errors"
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
 	"strconv"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
 
 	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 	"github.com/oscar-investmatic/modeluplink-client/pkg/security"

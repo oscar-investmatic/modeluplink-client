@@ -2,9 +2,10 @@ package hostexec
 
 import (
 	"errors"
-	"golang.org/x/sys/windows"
 	"os/exec"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 // RunInJob owns only the runtime we started. Closing its last handle also kills

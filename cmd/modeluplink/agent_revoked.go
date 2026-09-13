@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"log/slog"
+
 	"github.com/oscar-investmatic/modeluplink-client/internal/engine"
 	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 	"github.com/oscar-investmatic/modeluplink-client/internal/service"
-	"log/slog"
 )
 
 var retireCurrentService = service.RetireCurrent

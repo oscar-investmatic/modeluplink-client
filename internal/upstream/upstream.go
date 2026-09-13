@@ -55,7 +55,8 @@ func Route(base, path string) string {
 	return strings.TrimRight(base, "/") + strings.TrimPrefix(path, "/v1")
 }
 
-// Requests to local servers must never use an environment proxy or redirects.
+// Client returns a transport with environment proxies and redirects disabled.
+// This keeps local requests from being redirected through another server.
 func Client(timeout time.Duration) *http.Client {
 	return &http.Client{Timeout: timeout, Transport: &http.Transport{DialContext: (&net.Dialer{Timeout: 5 * time.Second}).DialContext, ResponseHeaderTimeout: 5 * time.Minute, IdleConnTimeout: 30 * time.Second}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 }

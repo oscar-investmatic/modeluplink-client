@@ -4,14 +4,15 @@ package service
 
 import (
 	"fmt"
-	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
-	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
+	"github.com/oscar-investmatic/modeluplink-client/internal/localconfig"
 )
 
 var serviceCommand = func(name string, args ...string) ([]byte, error) { return exec.Command(name, args...).CombinedOutput() }

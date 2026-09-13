@@ -19,10 +19,14 @@ import (
 	tunnelv1 "github.com/oscar-investmatic/modeluplink-client/proto/tunnel/v1"
 )
 
+// ErrEndpointRevoked tells the caller to persist a stopped state rather than reconnect.
 var ErrEndpointRevoked = errors.New("endpoint moved or removed")
 
+// Version is the agent version reported during relay registration. Packaging injects it.
 var Version = "0.1.0-dev"
 
+// Config identifies the endpoint, its local upstream, and its relay credentials.
+// Do not log this value: it contains reusable credentials.
 type Config struct {
 	EndpointID       string
 	EndpointHost     string
@@ -40,12 +44,16 @@ type Config struct {
 	scheduler        *modelScheduler
 }
 
+// Runner reconnects one endpoint until cancellation or revocation.
+// Create a separate Runner for each endpoint; do not call Run concurrently on it.
 type Runner struct {
 	Config    Config
 	Logger    *slog.Logger
 	TLSConfig *tls.Config // test/development injection; production uses ACME
 }
 
+// Run serves the endpoint until ctx is canceled or the endpoint is revoked.
+// Cancellation returns nil; revocation returns ErrEndpointRevoked.
 func (r *Runner) Run(ctx context.Context) error {
 	if r.Logger == nil {
 		r.Logger = slog.Default()
@@ -250,6 +258,8 @@ func allowed(method, path string) bool {
 	}
 }
 
+// ValidateUpstream checks the local upstream URL and explicit LAN opt-in.
+// It validates the address only; it does not contact the model server.
 func ValidateUpstream(raw string, allowLAN bool) error {
 	u, err := url.Parse(raw)
 	if err != nil {
