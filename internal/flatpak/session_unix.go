@@ -19,6 +19,24 @@ import (
 	"github.com/oscar-investmatic/modeluplink-client/pkg/security"
 )
 
+const updateRequiredMessage = "An older Model Uplink is still running. Stop sharing and close it before opening the updated package."
+
+func updateRequired(err error) bool {
+	var remote dbus.Error
+	if !errors.As(err, &remote) {
+		var pointer *dbus.Error
+		if !errors.As(err, &pointer) {
+			return false
+		}
+		remote = *pointer
+	}
+	if remote.Name == ID+".Error.UpdateRequired" {
+		return true
+	}
+	// Early preview packages used the generic D-Bus error name.
+	return remote.Name == "org.freedesktop.DBus.Error.Failed" && len(remote.Body) == 1 && remote.Body[0] == updateRequiredMessage
+}
+
 type worker struct {
 	cancel context.CancelFunc
 	done   chan struct{}
