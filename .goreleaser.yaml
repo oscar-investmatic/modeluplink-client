@@ -33,6 +33,7 @@ archives:
       - src: docs/cli-release/README.md
         strip_parent: true
       - LICENSE
+      - NOTICE
       - src: dist/source.json
         strip_parent: true
 checksum:

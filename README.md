@@ -54,5 +54,5 @@ been built from its commits. Source links identify source, not an independent au
 ## Contributions and security
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
-Third-party dependencies and model runtimes retain their own licenses. The
-application license must be selected and included before this candidate is published.
+The client source is licensed under [Apache-2.0](LICENSE). Third-party
+dependencies and model runtimes retain their own licenses. See [NOTICE](NOTICE).

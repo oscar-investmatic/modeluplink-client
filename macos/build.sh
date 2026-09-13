@@ -14,6 +14,7 @@ if [[ "$preview" == '1' && "$identity" != '-' ]]; then
 fi
 app="$PWD/dist/macos/Model Uplink.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
+cp LICENSE NOTICE "$app/Contents/Resources/"
 CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -mod=readonly \
   -ldflags "-s -w -X github.com/oscar-investmatic/modeluplink-client/pkg/agent.Version=$version -X github.com/oscar-investmatic/modeluplink-client/internal/buildinfo.Revision=$revision" \
   -o "$app/Contents/Resources/modeluplink" ./cmd/modeluplink

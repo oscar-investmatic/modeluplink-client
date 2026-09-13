@@ -15,6 +15,9 @@ trap 'rm -rf "$stage"' EXIT
 root="$stage/package"
 app="$root/usr/lib/modeluplink"
 mkdir -p "$app" "$root/usr/bin" "$root/usr/share/applications" "$root/usr/share/metainfo" "$root/usr/share/keyrings" "$root/etc/apt/sources.list.d" "$root/DEBIAN"
+mkdir -p "$root/usr/share/doc/modeluplink"
+cp LICENSE "$root/usr/share/doc/modeluplink/copyright"
+cp NOTICE "$root/usr/share/doc/modeluplink/NOTICE"
 for px in 64 128 256 512; do mkdir -p "$root/usr/share/icons/hicolor/${px}x${px}/apps"; done
 command -v convert >/dev/null || { echo 'ImageMagick (convert) is required for icon sizes' >&2; exit 1; }
 release_date="${SOURCE_DATE_EPOCH:+$(date -u -d "@$SOURCE_DATE_EPOCH" +%F)}"
@@ -35,7 +38,7 @@ cat > "$root/usr/share/metainfo/com.modeluplink.app.metainfo.xml" <<METAINFO
   <summary>Your local AI model, reachable from anywhere</summary>
   <developer_name>Model Uplink</developer_name>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>LicenseRef-proprietary</project_license>
+  <project_license>Apache-2.0</project_license>
   <description>
     <p>Model Uplink gives the Ollama model running on this computer a permanent, secure HTTPS address that works in any app that speaks the OpenAI API. Sign in with an emailed code, pick a model, and copy your address and key. Traffic is encrypted end to end; the relay never sees a prompt.</p>
     <p>The connection keeps running as a background service after you close the window. Keep the computer awake and online.</p>
@@ -98,6 +101,7 @@ portable="$stage/ModelUplink"
 mkdir -p "$portable"
 cp "$app/modeluplink" "$app/modeluplink-app" "$portable/"
 cp linux/README.md "$portable/README.md"
+cp LICENSE NOTICE "$portable/"
 tar -czf "$output/modeluplink-desktop_${version}_linux_${arch}.tar.gz" -C "$stage" ModelUplink
 (cd "$output"; sha256sum "modeluplink_${version}_linux_${arch}.deb" "modeluplink-desktop_${version}_linux_${arch}.tar.gz" > "checksums_${arch}.txt")
 echo "Built Linux $arch packages in $output"

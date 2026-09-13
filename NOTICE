@@ -1,0 +1,8 @@
+Model Uplink clients
+Copyright 2026 Model Uplink contributors
+
+The client source is distributed under the Apache License, Version 2.0.
+Third-party dependencies retain their original copyright notices and licenses.
+Dependency versions are recorded in go.mod and go.sum; their source distributions
+contain the applicable license texts. Separately installed model runtimes and
+model weights are not relicensed by this project.

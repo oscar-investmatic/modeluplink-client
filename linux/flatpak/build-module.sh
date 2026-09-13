@@ -8,6 +8,8 @@ revision="$(cat SOURCE_REVISION)"
 [[ "$build_id" =~ ^[0-9a-f]{64}$ ]]
 export GOCACHE="$PWD/.go-cache"
 mkdir -p /app/bin /app/share/applications /app/share/metainfo /app/share/icons/hicolor/512x512/apps
+mkdir -p /app/share/licenses/com.modeluplink.app
+install -m644 LICENSE NOTICE /app/share/licenses/com.modeluplink.app/
 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X github.com/oscar-investmatic/modeluplink-client/internal/buildinfo.Revision=$revision -X github.com/oscar-investmatic/modeluplink-client/pkg/agent.Version=$version -X github.com/oscar-investmatic/modeluplink-client/internal/flatpak.BuildID=$build_id" -o /app/bin/modeluplink ./cmd/modeluplink
 CGO_ENABLED=1 go build -trimpath -ldflags "-s -w -X github.com/oscar-investmatic/modeluplink-client/internal/buildinfo.Revision=$revision -X main.Version=$version -X github.com/oscar-investmatic/modeluplink-client/internal/flatpak.BuildID=$build_id" -o /app/bin/modeluplink-app ./cmd/modeluplink-app
 install -m755 linux/flatpak/modeluplink-flatpak /app/bin/

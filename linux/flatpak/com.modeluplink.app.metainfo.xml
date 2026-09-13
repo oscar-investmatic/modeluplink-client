@@ -5,7 +5,7 @@
   <summary>Share access to your local model server</summary>
   <developer_name>Model Uplink</developer_name>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>LicenseRef-proprietary</project_license>
+  <project_license>Apache-2.0</project_license>
   <description>
     <p>Connect a separately installed model server using its OpenAI-compatible API, select the models to share, and provide remote access through Model Uplink.</p>
     <p>Sharing can continue after you close the window with desktop background permission. Keep your model server running and this computer awake and online. Signing out may stop sharing.</p>

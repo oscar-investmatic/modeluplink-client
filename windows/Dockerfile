@@ -9,9 +9,11 @@ COPY pkg ./pkg
 COPY proto ./proto
 COPY windows ./windows
 COPY desktop ./desktop
+COPY LICENSE NOTICE ./
 ARG MODELUPLINK_REVISION
 ENV MODELUPLINK_REVISION=$MODELUPLINK_REVISION
 ARG MODELUPLINK_VERSION
+RUN mkdir -p /out && cp LICENSE NOTICE /out/
 RUN test -n "$MODELUPLINK_REVISION"
 RUN go run ./windows/resources -version "${MODELUPLINK_VERSION:-$(cat desktop/VERSION)}" -windres x86_64-w64-mingw32-windres
 ENV GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc

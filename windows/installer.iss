@@ -35,6 +35,8 @@ DisableProgramGroupPage=yes
 SetupAppRunningError=%1 is still running in the tray.%n%nChoose Exit from the Model Uplink tray menu, then click OK to continue, or Cancel to exit.
 UninstallAppRunningError=%1 is still running in the tray.%n%nChoose Exit from the Model Uplink tray menu, then click OK to continue, or Cancel to exit.
 [Files]
+Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\NOTICE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BuildDir}\modeluplink-app.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BuildDir}\modeluplink.exe"; DestDir: "{app}"; Flags: ignoreversion
 [Icons]
