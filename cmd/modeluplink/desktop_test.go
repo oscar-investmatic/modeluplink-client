@@ -20,6 +20,7 @@ func TestDesktopExplainsEndpointConflictsWithoutExposingServerDetails(t *testing
 		code string
 		want string
 	}{
+		{"trial_key_limit_reached", "Your trial already has an API key. Use your saved copy, or manage your keys in the dashboard to replace it."},
 		{"endpoint_limit_reached", "Your account has reached its connection limit. Offline connections still count. Open your dashboard to manage your existing connections."},
 		{"endpoint_name_taken", "This address is already taken. Choose another name and try again."},
 	} {

@@ -410,6 +410,9 @@ func desktopError(err error) string {
 	if errors.As(err, &apiErr) {
 		switch apiErr.Status {
 		case 409:
+			if apiErr.Code == "trial_key_limit_reached" {
+				return "Your trial already has an API key. Use your saved copy, or manage your keys in the dashboard to replace it."
+			}
 			if apiErr.Code == "endpoint_limit_reached" {
 				return connectionLimitMessage
 			}
