@@ -1,0 +1,28 @@
+app-id: com.modeluplink.app
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.golang
+command: modeluplink-flatpak
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=x11
+  - --device=dri
+  - --talk-name=org.freedesktop.secrets
+  - --env=FYNE_PLATFORM=x11
+build-options:
+  append-path: /usr/lib/sdk/golang/bin
+  env:
+    GOTOOLCHAIN: local
+    GOPROXY: 'off'
+    GOFLAGS: -mod=vendor
+modules:
+  - name: modeluplink
+    buildsystem: simple
+    build-commands:
+      - bash linux/flatpak/build-module.sh
+    sources:
+      - type: dir
+        path: ../../dist/flatpak/source

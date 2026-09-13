@@ -1,0 +1,46 @@
+version: 2
+project_name: modeluplink
+# No `go mod tidy` before-hook: the release must build exactly the committed
+# go.mod/go.sum. `-mod=readonly` makes any drift a hard failure.
+before:
+  hooks:
+    - python3 desktop/source.py --tag {{ .Tag }}
+report_sizes: true
+release:
+  draft: true
+  prerelease: true
+builds:
+  - id: cli
+    main: ./cmd/modeluplink
+    binary: modeluplink
+    env: [CGO_ENABLED=0]
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ignore:
+      - goos: darwin
+        goarch: amd64
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    flags: [-trimpath, -mod=readonly]
+    ldflags:
+      - -s -w -X github.com/oscar-investmatic/modeluplink-client/pkg/agent.Version={{ .Version }} -X github.com/oscar-investmatic/modeluplink-client/internal/buildinfo.Revision={{ .Commit }}
+archives:
+  - ids: [cli]
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    # Distribute only the CLI and its public instructions, not the source
+    # repository's developer README or operational documentation.
+    files:
+      - src: docs/cli-release/README.md
+        strip_parent: true
+      - LICENSE
+      - src: dist/source.json
+        strip_parent: true
+checksum:
+  name_template: checksums.txt
+sboms:
+  # Requires syft on PATH (installed in release.yml). One SPDX SBOM per archive.
+  - artifacts: archive
+changelog:
+  sort: asc
+  filters:
+    exclude: ['^docs:', '^test:', '^chore:']

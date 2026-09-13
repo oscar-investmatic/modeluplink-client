@@ -1,0 +1,44 @@
+name: Client CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  go:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      GOFLAGS: -mod=readonly
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        with:
+          go-version: '1.27.1'
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - run: go test -race -tags ci ./...
+      - run: go vet -tags ci ./...
+      - run: python -m unittest discover -s desktop -p 'test_*.py'
+      - name: Swift helper and desktop contracts
+        if: runner.os == 'macOS'
+        run: bash macos/test.sh
+      - name: Native macOS development package
+        if: runner.os == 'macOS'
+        run: bash macos/package.sh
+      - name: Verify locked dependencies and generated source did not change
+        run: git diff --exit-code
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - name: Build and smoke-test DEB and desktop archive
+        run: bash linux/build.sh amd64

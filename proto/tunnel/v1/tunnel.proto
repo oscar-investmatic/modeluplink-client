@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package modeluplink.tunnel.v1;
+
+option go_package = "github.com/oscar-investmatic/modeluplink-client/proto/tunnel/v1;tunnelv1";
+
+enum FrameType {
+  FRAME_TYPE_UNSPECIFIED = 0;
+  FRAME_TYPE_REGISTER = 1;
+  FRAME_TYPE_REGISTERED = 2;
+  FRAME_TYPE_REQUEST_HEAD = 3;
+  FRAME_TYPE_RESPONSE_HEAD = 4;
+  FRAME_TYPE_DATA = 5;
+  FRAME_TYPE_END = 6;
+  FRAME_TYPE_CANCEL = 7;
+  FRAME_TYPE_PING = 8;
+  FRAME_TYPE_PONG = 9;
+  FRAME_TYPE_ERROR = 10;
+}
+
+message Header {
+  string name = 1;
+  repeated string values = 2;
+}
+
+message Register {
+  string endpoint_id = 1;
+  string agent_token = 2;
+  string agent_version = 3;
+  string engine = 4;
+  repeated string capabilities = 5;
+}
+
+message RequestHead {
+  string method = 1;
+  string path = 2;
+  string raw_query = 3;
+  repeated Header headers = 4;
+}
+
+message ResponseHead {
+  int32 status = 1;
+  repeated Header headers = 2;
+}
+
+message Envelope {
+  uint32 protocol_version = 1;
+  string stream_id = 2;
+  FrameType type = 3;
+  Register register = 4;
+  RequestHead request_head = 5;
+  ResponseHead response_head = 6;
+  bytes data = 7;
+  string error = 8;
+}

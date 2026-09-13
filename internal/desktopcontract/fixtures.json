@@ -1,0 +1,323 @@
+[
+  {
+    "name": "setup_complete",
+    "wire": "{\"event\": \"progress\", \"stage\": \"account\", \"message\": \"Working\u2026\", \"completed\": 25, \"total\": 100}\n{\"event\": \"progress\", \"stage\": \"prepare\", \"message\": \"Working\u2026\", \"completed\": 25, \"total\": 100}\n{\"event\": \"progress\", \"stage\": \"download\", \"message\": \"Working\u2026\", \"completed\": 25, \"total\": 100}\n{\"event\": \"progress\", \"stage\": \"modelcheck\", \"message\": \"Working\u2026\", \"completed\": 25, \"total\": 100}\n{\"event\": \"progress\", \"stage\": \"reserve\", \"message\": \"Working\u2026\", \"completed\": 25, \"total\": 100}\n{\"event\": \"progress\", \"stage\": \"start\", \"message\": \"Working\u2026\", \"completed\": 25, \"total\": 100}\n{\"event\": \"progress\", \"stage\": \"verify\", \"message\": \"Working\u2026\", \"completed\": 25, \"total\": 100}\n{\"ready\": true, \"account\": {\"email\": \"person@example.invalid\", \"billing_state\": \"inactive\", \"trial_status\": \"active\", \"trial_remaining\": 317, \"trial_transfer_remaining\": 170000000}, \"endpoint\": {\"id\": \"fixture-endpoint\", \"slug\": \"fixture\", \"url\": \"https://fixture.example.invalid/v1\", \"online\": true}, \"endpoints\": [{\"id\": \"fixture-endpoint\", \"slug\": \"fixture\", \"url\": \"https://fixture.example.invalid/v1\", \"online\": true}], \"models\": [\"llama3.2:3b\"], \"api_key\": \"fixture-only-key\", \"shared_models\": {\"fixture\": [\"llama3.2:3b\"]}, \"activity\": {\"fixture\": {\"model\": \"llama3.2:3b\", \"running\": 1, \"waiting\": 2}}}\n",
+    "accept": true,
+    "expected": {
+      "ready": true,
+      "account": {
+        "email": "person@example.invalid",
+        "billing_state": "inactive",
+        "trial_status": "active",
+        "trial_remaining": 317,
+        "trial_transfer_remaining": 170000000
+      },
+      "endpoint": {
+        "id": "fixture-endpoint",
+        "slug": "fixture",
+        "url": "https://fixture.example.invalid/v1",
+        "online": true
+      },
+      "endpoints": [
+        {
+          "id": "fixture-endpoint",
+          "slug": "fixture",
+          "url": "https://fixture.example.invalid/v1",
+          "online": true
+        }
+      ],
+      "models": [
+        "llama3.2:3b"
+      ],
+      "api_key": "fixture-only-key",
+      "shared_models": {
+        "fixture": [
+          "llama3.2:3b"
+        ]
+      },
+      "activity": {
+        "fixture": {
+          "model": "llama3.2:3b",
+          "running": 1,
+          "waiting": 2
+        }
+      }
+    },
+    "stages": [
+      "account",
+      "prepare",
+      "download",
+      "modelcheck",
+      "reserve",
+      "start",
+      "verify"
+    ]
+  },
+  {
+    "name": "sign_in_expired",
+    "wire": "{\"error\": \"This code has expired. Request a new code.\"}\n",
+    "accept": true,
+    "expected": {
+      "error": "This code has expired. Request a new code."
+    },
+    "stages": []
+  },
+  {
+    "name": "trial_exhausted",
+    "wire": "{\"account\": {\"email\": \"person@example.invalid\", \"billing_state\": \"inactive\", \"trial_status\": \"exhausted\", \"trial_remaining\": 0, \"trial_transfer_remaining\": 170000000}, \"endpoints\": [{\"id\": \"fixture-endpoint\", \"slug\": \"fixture\", \"url\": \"https://fixture.example.invalid/v1\", \"online\": true}], \"stopped\": {\"fixture\": false}}\n",
+    "accept": true,
+    "expected": {
+      "account": {
+        "email": "person@example.invalid",
+        "billing_state": "inactive",
+        "trial_status": "exhausted",
+        "trial_remaining": 0,
+        "trial_transfer_remaining": 170000000
+      },
+      "endpoints": [
+        {
+          "id": "fixture-endpoint",
+          "slug": "fixture",
+          "url": "https://fixture.example.invalid/v1",
+          "online": true
+        }
+      ],
+      "stopped": {
+        "fixture": false
+      }
+    },
+    "stages": []
+  },
+  {
+    "name": "trial_transfer_required",
+    "wire": "{\"account\": {\"email\": \"person@example.invalid\", \"billing_state\": \"inactive\", \"trial_status\": \"active\", \"trial_remaining\": 317, \"trial_transfer_remaining\": 170000000}, \"other_trial\": {\"id\": \"fixture-endpoint\", \"slug\": \"fixture\", \"url\": \"https://fixture.example.invalid/v1\", \"online\": true}, \"models\": []}\n",
+    "accept": true,
+    "expected": {
+      "account": {
+        "email": "person@example.invalid",
+        "billing_state": "inactive",
+        "trial_status": "active",
+        "trial_remaining": 317,
+        "trial_transfer_remaining": 170000000
+      },
+      "other_trial": {
+        "id": "fixture-endpoint",
+        "slug": "fixture",
+        "url": "https://fixture.example.invalid/v1",
+        "online": true
+      }
+    },
+    "stages": []
+  },
+  {
+    "name": "disconnected",
+    "wire": "{\"account\": {\"email\": \"person@example.invalid\", \"billing_state\": \"inactive\", \"trial_status\": \"active\", \"trial_remaining\": 317, \"trial_transfer_remaining\": 170000000}, \"endpoints\": [{\"id\": \"fixture-endpoint\", \"slug\": \"fixture\", \"url\": \"https://fixture.example.invalid/v1\", \"online\": false}], \"stopped\": {\"fixture\": false}}\n",
+    "accept": true,
+    "expected": {
+      "account": {
+        "email": "person@example.invalid",
+        "billing_state": "inactive",
+        "trial_status": "active",
+        "trial_remaining": 317,
+        "trial_transfer_remaining": 170000000
+      },
+      "endpoints": [
+        {
+          "id": "fixture-endpoint",
+          "slug": "fixture",
+          "url": "https://fixture.example.invalid/v1",
+          "online": false
+        }
+      ],
+      "stopped": {
+        "fixture": false
+      }
+    },
+    "stages": []
+  },
+  {
+    "name": "memory_release_pending",
+    "wire": "{\"event\": \"progress\", \"stage\": \"unload\", \"message\": \"Releasing model memory\u2026\"}\n{\"account\": {\"email\": \"person@example.invalid\", \"billing_state\": \"inactive\", \"trial_status\": \"active\", \"trial_remaining\": 317, \"trial_transfer_remaining\": 170000000}, \"endpoints\": [{\"id\": \"fixture-endpoint\", \"slug\": \"fixture\", \"url\": \"https://fixture.example.invalid/v1\", \"online\": false}], \"stopped\": {\"fixture\": true}, \"memory_release_pending\": {\"fixture\": true}, \"notice\": \"Sharing stopped, but Ollama has not confirmed memory release.\"}\n",
+    "accept": true,
+    "expected": {
+      "account": {
+        "email": "person@example.invalid",
+        "billing_state": "inactive",
+        "trial_status": "active",
+        "trial_remaining": 317,
+        "trial_transfer_remaining": 170000000
+      },
+      "endpoints": [
+        {
+          "id": "fixture-endpoint",
+          "slug": "fixture",
+          "url": "https://fixture.example.invalid/v1",
+          "online": false
+        }
+      ],
+      "stopped": {
+        "fixture": true
+      },
+      "memory_release_pending": {
+        "fixture": true
+      },
+      "notice": "Sharing stopped, but Ollama has not confirmed memory release."
+    },
+    "stages": [
+      "unload"
+    ]
+  },
+  {
+    "name": "startup_disabled",
+    "wire": "{\"startup_enabled\": false}\n",
+    "accept": true,
+    "expected": {
+      "startup_enabled": false
+    },
+    "stages": []
+  },
+  {
+    "name": "startup_enabled",
+    "wire": "{\"startup_enabled\":true}\n",
+    "accept": true,
+    "expected": {
+      "startup_enabled": true
+    },
+    "stages": []
+  },
+  {
+    "name": "signed_out",
+    "wire": "{\"ready\": false, \"endpoints\": null, \"models\": null}\n",
+    "accept": true,
+    "expected": {
+      "ready": false
+    },
+    "stages": []
+  },
+  {
+    "name": "future_optional_field",
+    "wire": "{\"ready\": true, \"future_field\": \"ignored\"}\n",
+    "accept": true,
+    "expected": {
+      "ready": true
+    },
+    "stages": []
+  },
+  {
+    "name": "blank_lines",
+    "wire": "\n  \n{\"ready\":true}\n",
+    "accept": true,
+    "expected": {
+      "ready": true
+    },
+    "stages": []
+  },
+  {
+    "name": "empty",
+    "wire": "",
+    "accept": false,
+    "expected": {},
+    "stages": []
+  },
+  {
+    "name": "truncated",
+    "wire": "{\"ready\":true}",
+    "accept": false,
+    "expected": {},
+    "stages": []
+  },
+  {
+    "name": "progress_without_result",
+    "wire": "{\"event\":\"progress\",\"stage\":\"prepare\",\"message\":\"Preparing\"}\n",
+    "accept": false,
+    "expected": {},
+    "stages": []
+  },
+  {
+    "name": "unknown_event",
+    "wire": "{\"event\":\"surprise\"}\n",
+    "accept": false,
+    "expected": {},
+    "stages": []
+  },
+  {
+    "name": "two_results",
+    "wire": "{}\n{}\n",
+    "accept": false,
+    "expected": {},
+    "stages": []
+  },
+  {
+    "name": "event_after_result",
+    "wire": "{}\n{\"event\":\"progress\",\"stage\":\"start\",\"message\":\"Starting\"}\n",
+    "accept": false,
+    "expected": {},
+    "stages": []
+  },
+  {
+    "name": "external_local_server",
+    "wire": "{\"source\": {\"url\": \"http://127.0.0.1:1234/v1\", \"status\": \"server_available\", \"message\": \"API reachable. Test a selected model to check its response.\", \"models\": [\"friends-model\"], \"ownership\": \"external\"}, \"servers\": [{\"url\": \"http://127.0.0.1:1234/v1\", \"status\": \"server_available\", \"message\": \"API reachable. Test a selected model to check its response.\", \"models\": [\"friends-model\"], \"ownership\": \"external\"}], \"local_sources\": {\"shared-gpu\": {\"url\": \"http://127.0.0.1:1234/v1\", \"status\": \"server_available\", \"message\": \"API reachable. Test a selected model to check its response.\", \"models\": [\"friends-model\"], \"ownership\": \"external\"}}, \"models\": [\"friends-model\"], \"ready\": false, \"endpoints\": []}\n",
+    "accept": true,
+    "expected": {
+      "source": {
+        "url": "http://127.0.0.1:1234/v1",
+        "status": "server_available",
+        "message": "API reachable. Test a selected model to check its response.",
+        "models": [
+          "friends-model"
+        ],
+        "ownership": "external"
+      },
+      "servers": [
+        {
+          "url": "http://127.0.0.1:1234/v1",
+          "status": "server_available",
+          "message": "API reachable. Test a selected model to check its response.",
+          "models": [
+            "friends-model"
+          ],
+          "ownership": "external"
+        }
+      ],
+      "local_sources": {
+        "shared-gpu": {
+          "url": "http://127.0.0.1:1234/v1",
+          "status": "server_available",
+          "message": "API reachable. Test a selected model to check its response.",
+          "models": [
+            "friends-model"
+          ],
+          "ownership": "external"
+        }
+      },
+      "models": [
+        "friends-model"
+      ],
+      "ready": false,
+      "endpoints": []
+    },
+    "stages": []
+  },
+  {
+    "name": "paid_connection_limit",
+    "wire": "{\"account\": {\"email\": \"person@example.invalid\", \"billing_state\": \"active\", \"trial_status\": \"not_applicable\", \"trial_remaining\": 0, \"trial_transfer_remaining\": 0}, \"endpoints\": [], \"connection_limit\": {\"id\": \"ep_existing\", \"slug\": \"existing\", \"url\": \"https://existing.example.invalid/v1\", \"online\": false}}\n",
+    "accept": true,
+    "expected": {
+      "account": {
+        "email": "person@example.invalid",
+        "billing_state": "active",
+        "trial_status": "not_applicable",
+        "trial_remaining": 0,
+        "trial_transfer_remaining": 0
+      },
+      "endpoints": [],
+      "connection_limit": {
+        "id": "ep_existing",
+        "slug": "existing",
+        "url": "https://existing.example.invalid/v1",
+        "online": false
+      }
+    },
+    "stages": []
+  }
+]

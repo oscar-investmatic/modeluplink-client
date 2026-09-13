@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /app/bin/modeluplink _flatpak "$@"

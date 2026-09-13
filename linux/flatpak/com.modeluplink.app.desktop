@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Model Uplink
+Comment=Share access to your local model server
+Exec=modeluplink-flatpak
+Icon=com.modeluplink.app
+Terminal=false
+Categories=Network;Utility;
+StartupWMClass=Model Uplink

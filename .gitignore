@@ -1,0 +1,9 @@
+/dist/
+/vendor/
+.env
+.env.*
+*.log
+*.test
+__pycache__/
+cmd/modeluplink/resource_windows_amd64.syso
+cmd/modeluplink-app/resource_windows_amd64.syso
