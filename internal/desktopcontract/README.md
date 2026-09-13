@@ -5,4 +5,4 @@ and state models, and round-tripped through the Go helper's response type.
 Update expected fields when intentionally changing the protocol, then update both
 interfaces in the same change. Never insert real addresses, emails or secrets.
 
-The full feature matrix and release checklist live in `docs/desktop-parity.md`.
+The full feature matrix and release checklist live in `RELEASING.md`.
