@@ -56,7 +56,11 @@ func desktopSettings(u *ui) []fyne.CanvasObject {
 		stop := widget.NewButton("Stop sharing", func() { settings.Hide(); u.stopAll() })
 		source := widget.NewButton("View source", func() { target, _ := url.Parse(buildinfo.Current().SourceURL); _ = u.app.OpenURL(target) })
 		items = append(items, stop, update, source, problem, u.secondary("Model Uplink "+Version, fyne.TextAlignLeading))
-		settings = dialog.NewCustom("Settings", "Close", container.NewVBox(items...), u.window)
+		body := container.NewVScroll(container.NewVBox(items...))
+		body.SetMinSize(fyne.NewSize(280, 200))
+		settings = dialog.NewCustom("Settings", "Close", body, u.window)
+		size := u.window.Canvas().Size()
+		settings.Resize(fyne.NewSize(size.Width-32, size.Height-32))
 		settings.Show()
 	})
 	if u.working() {
