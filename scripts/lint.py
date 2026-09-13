@@ -48,8 +48,7 @@ def main():
         "run",
         ACTIONLINT,
         "-pyflakes=",
-        ".github/workflows/ci.yml",
-        ".github/workflows/release.yml",
+        *sorted(str(p.relative_to(ROOT)) for p in (ROOT / ".github/workflows").glob("*.yml")),
     )
     run("git", "diff", "--check")
     print("Client lint checks passed.")

@@ -12,9 +12,10 @@ manually export a second client implementation from the hosted service repositor
    signs the checksum manifest, and attests the archives. The draft is published
    as a prerelease only after these operations pass. Promote after acceptance.
 4. Native installers need their own platform builds, signatures, acceptance
-   evidence, and artifact attestations from the same source commit. The current
-   workflow publishes CLI archives only. Do not describe it as attesting a DMG,
-   DEB, EXE, or Flatpak that it did not build.
+   evidence, and artifact attestations from the same source commit. The tag
+   workflow publishes CLI archives only. The separate Flatpak candidate workflow
+   builds and attests its own bundle, as described below. Neither workflow attests
+   a DMG, DEB, or EXE.
 5. The website should reference the resulting release artifacts and source commit.
    Promotion must verify downloaded hashes and signatures before changing links.
    Never rebuild an already accepted artifact during website publication.
@@ -57,3 +58,38 @@ Start/Stop; window close/reopen; login/logout/reboot; network loss; update from 
 previous version; and uninstall. Run Linux checks in graphical VM sessions on
 Ubuntu GNOME, Fedora KDE, and openSUSE KDE. Sharing need not survive logout.
 Keep lab addresses and credentials outside this repository.
+
+## Publish an accepted Flatpak
+
+Run **Signed Flatpak candidate** (`flatpak.yml`) on the committed `main` revision
+intended for release. It builds from clean public source, records SDK/runtime
+commits, signs `flatpak-checksums.txt` with GitHub OIDC, attests the actual bundle,
+and uploads a workflow artifact. It does not publish a release or change the site.
+
+Download that run's `flatpak-x86_64-<commit>` artifact. Check the run's source
+revision against `flatpak-source.json`, and verify:
+
+```sh
+sha256sum --check flatpak-checksums.txt
+cosign verify-blob \
+  --bundle flatpak-checksums.txt.sigstore.json \
+  --certificate-identity 'https://github.com/oscar-investmatic/modeluplink-client/.github/workflows/flatpak.yml@refs/heads/main' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  flatpak-checksums.txt
+gh attestation verify modeluplink_VERSION_x86_64.flatpak \
+  --repo oscar-investmatic/modeluplink-client \
+  --signer-workflow oscar-investmatic/modeluplink-client/.github/workflows/flatpak.yml
+```
+
+Run native acceptance on these exact downloaded bytes. Match the installed
+`modeluplink version --json` revision and the app OSTree commit to the recorded
+identity. Test both the graphical update prompt and the completed restart while
+sharing; a stopped connection must remain stopped. Legacy previews without the
+handover method must show usable manual recovery instructions.
+
+After acceptance and client CI pass for that revision, tag the same commit and
+attach the accepted bundle, `flatpak-source.json`, `flatpak-checksums.txt`, and
+its Sigstore bundle to that release. Keep the acceptance report with its source
+commit and bundle hash. Verify the published downloads again before promoting
+the release or changing the website. Do not rebuild during promotion. The bundle
+is distributed directly; this process does not constitute a Flathub listing.
