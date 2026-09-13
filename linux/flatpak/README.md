@@ -36,10 +36,12 @@ active agents in the sandbox session. Stop waits for the agent to exit and leave
 an external model server running. Signing out may stop sharing. Login autostart is
 off for new profiles; explicit Stop remains authoritative after automatic launch.
 
-Stop sharing and close the app before updating. A new launcher refuses an older
-running session; the error currently appears in launcher output. A graphical
-update handover remains a release requirement. Installing a new on-disk bundle
-does not update an already-running process.
+Installing a new bundle does not replace an already-running process. Opening the
+updated package shows a restart window. Close the existing app window, then choose
+Restart to update; active connections briefly disconnect and resume, while stopped
+connections stay stopped. The old session releases its agents before the new one
+starts. Choosing Later leaves the running version in place. Early preview builds
+without this handover protocol show manual recovery instructions instead.
 
 Test in a fully initialized graphical session. Unit tests do not establish portal,
 keyring, login, or remote inference behavior. The earlier private preview passed

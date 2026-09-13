@@ -566,9 +566,17 @@ func (u *ui) copyKey(target endpoint) {
 		u.copy(key, "API key")
 		return
 	}
-	if key, ok := u.keys.read(target.Slug); ok {
+	key, err := u.keys.read(target.Slug)
+	if err == nil {
 		u.memoryKeys[target.Slug] = key
 		u.copy(key, "API key")
+		return
+	}
+	// A cancelled unlock is not evidence that the key is missing. Creating a
+	// replacement here would leave paid accounts with an unexpected extra key.
+	if !errors.Is(err, errKeyNotFound) {
+		u.errText = errKeyringRead.Error()
+		u.render()
 		return
 	}
 	u.act("new_key", target)

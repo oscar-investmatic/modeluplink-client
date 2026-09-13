@@ -17,7 +17,7 @@ func testSession(t *testing.T) *session {
 	t.Helper()
 	t.Setenv("MODELUPLINK_CONFIG_DIR", t.TempDir())
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
-	s := &session{agents: make(map[string]*worker), permission: func(bool) error { return nil }, command: func(string) *exec.Cmd { return exec.Command("sleep", "60") }}
+	s := &session{agents: make(map[string]*worker), shutdown: make(chan struct{}), permission: func(bool) error { return nil }, command: func(string) *exec.Cmd { return exec.Command("sleep", "60") }}
 	t.Cleanup(s.close)
 	return s
 }
@@ -37,6 +37,74 @@ func TestDeniedPermissionNeverStartsAgent(t *testing.T) {
 	}
 	if !s.idle() {
 		t.Fatal("denial left background work running")
+	}
+}
+
+func TestUpdateWaitsForWindowAndPendingWork(t *testing.T) {
+	s := testSession(t)
+	s.gui = exec.Command("sleep", "1")
+	if err := s.PrepareUpdate("next-build"); err == nil || s.closing {
+		t.Fatal("update interrupted an open window")
+	}
+	s.gui = nil
+	s.pending = 1
+	if err := s.PrepareUpdate("next-build"); err == nil || s.closing {
+		t.Fatal("update interrupted a pending operation")
+	}
+	s.pending = 0
+}
+
+func TestUpdateStopsWorkersWithoutChangingSavedIntent(t *testing.T) {
+	s := testSession(t)
+	saveTestEndpoint(t, false)
+	if err := s.start("lab-test"); err != nil {
+		t.Fatal(err)
+	}
+	w := s.agents["lab-test"]
+	if err := s.FinishUpdate("next-build"); err == nil {
+		t.Fatal("unprepared shutdown accepted")
+	}
+	if err := s.PrepareUpdate("next-build"); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-s.shutdown:
+		t.Fatal("shutdown began before preparation could be acknowledged")
+	default:
+	}
+	if err := s.Start("lab-test"); err == nil {
+		t.Fatal("update allowed a competing start")
+	}
+	if err := s.FinishUpdate("next-build"); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-s.shutdown:
+	default:
+		t.Fatal("update did not request shutdown")
+	}
+	s.close()
+	select {
+	case <-w.done:
+	default:
+		t.Fatal("update returned before the old worker stopped")
+	}
+	if _, _, err := savedEndpoint("lab-test"); err != nil {
+		t.Fatalf("update changed saved sharing intent: %v", err)
+	}
+}
+
+func TestUpdateRequiredRecognizesPreviewAndCurrentErrors(t *testing.T) {
+	for _, err := range []error{
+		dbus.NewError(ID+".Error.UpdateRequired", []interface{}{updateRequiredMessage}),
+		dbus.MakeFailedError(errors.New(updateRequiredMessage)),
+	} {
+		if !updateRequired(err) {
+			t.Fatal("update error was not recognized")
+		}
+	}
+	if updateRequired(errors.New(updateRequiredMessage)) || updateRequired(dbus.MakeFailedError(errors.New("unrelated"))) {
+		t.Fatal("unrelated failure triggered update")
 	}
 }
 func TestRestartReplacesAgentAndStopWaitsForExit(t *testing.T) {

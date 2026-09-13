@@ -14,9 +14,9 @@ import (
 
 type testKeys struct{}
 
-func (testKeys) save(string, string) error  { return nil }
-func (testKeys) read(string) (string, bool) { return "", false }
-func (testKeys) remove(string)              {}
+func (testKeys) save(string, string) error   { return nil }
+func (testKeys) read(string) (string, error) { return "", errKeyNotFound }
+func (testKeys) remove(string)               {}
 
 type blockingHelper struct {
 	calls   chan map[string]string

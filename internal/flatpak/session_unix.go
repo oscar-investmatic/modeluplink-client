@@ -32,6 +32,8 @@ type session struct {
 	permission func(bool) error
 	command    func(string) *exec.Cmd
 	pending    int
+	closing    bool
+	shutdown   chan struct{}
 }
 
 func savedEndpoint(slug string) (localconfig.Endpoint, string, error) {
@@ -64,6 +66,9 @@ func (s *session) start(slug string) error {
 	// two agents for one connection or return before the old one has exited.
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.closing {
+		return errors.New("Model Uplink is restarting to finish an update.")
+	}
 	if old := s.agents[slug]; old != nil {
 		old.cancel()
 		<-old.done
@@ -132,6 +137,10 @@ func (s *session) start(slug string) error {
 
 func (s *session) Start(slug string) *dbus.Error {
 	s.mu.Lock()
+	if s.closing {
+		s.mu.Unlock()
+		return dbus.MakeFailedError(errors.New("Model Uplink is restarting to finish an update."))
+	}
 	s.pending++
 	s.mu.Unlock()
 	defer func() { s.mu.Lock(); s.pending--; s.mu.Unlock() }()
@@ -165,6 +174,10 @@ func (s *session) Stop(slug string) *dbus.Error {
 }
 func (s *session) Startup(enabled bool) *dbus.Error {
 	s.mu.Lock()
+	if s.closing {
+		s.mu.Unlock()
+		return dbus.MakeFailedError(errors.New("Model Uplink is restarting to finish an update."))
+	}
 	s.pending++
 	s.mu.Unlock()
 	defer func() { s.mu.Lock(); s.pending--; s.mu.Unlock() }()
@@ -188,10 +201,13 @@ func (s *session) Retire(slug string) *dbus.Error {
 }
 func (s *session) Open(build string) *dbus.Error {
 	if build != BuildID {
-		return dbus.MakeFailedError(errors.New("An older Model Uplink is still running. Stop sharing and close it before opening the updated package."))
+		return dbus.NewError(ID+".Error.UpdateRequired", []interface{}{updateRequiredMessage})
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.closing {
+		return dbus.MakeFailedError(errors.New("Model Uplink is restarting to finish an update."))
+	}
 	if s.gui != nil {
 		return nil
 	}
@@ -214,9 +230,44 @@ func (s *session) Open(build string) *dbus.Error {
 	}()
 	return nil
 }
+
+// PrepareUpdate releases this sandbox session after the update window obtains
+// consent. Saved Stop settings are preserved; the new session resumes only
+// connections that were already sharing.
+func (s *session) PrepareUpdate(build string) *dbus.Error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if build == BuildID || s.pending != 0 || s.gui != nil {
+		return dbus.MakeFailedError(errors.New("Close the existing app window and let its current operation finish, then try again."))
+	}
+	if !s.closing {
+		s.closing = true
+	}
+	return nil
+}
+
+// FinishUpdate is sent without expecting a reply, after PrepareUpdate has
+// acknowledged the request. This avoids dropping that acknowledgement when
+// shutdown closes the D-Bus connection.
+func (s *session) FinishUpdate(build string) *dbus.Error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.closing || build == BuildID {
+		return dbus.MakeFailedError(errors.New("Prepare the update before finishing it."))
+	}
+	select {
+	case <-s.shutdown:
+	default:
+		close(s.shutdown)
+	}
+	return nil
+}
 func (s *session) idle() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.closing {
+		return false
+	}
 	for slug, w := range s.agents {
 		select {
 		case <-w.done:
@@ -272,13 +323,42 @@ func Run(backgroundOnly bool) error {
 		if backgroundOnly {
 			return nil
 		}
-		return Call("Open", BuildID)
+		err = Call("Open", BuildID)
+		if !updateRequired(err) {
+			return err
+		}
+		executable, pathErr := os.Executable()
+		if pathErr != nil {
+			return pathErr
+		}
+		prompt := exec.Command(filepath.Join(filepath.Dir(executable), "modeluplink-app"), "--flatpak-update")
+		prompt.Stdout, prompt.Stderr = os.Stdout, os.Stderr
+		var result *exec.ExitError
+		if promptErr := prompt.Run(); !errors.As(promptErr, &result) || result.ExitCode() != UpdateAcceptedExit {
+			return promptErr
+		}
+		// The old session closes agents before releasing its bus name. Never
+		// start a replacement while it can still serve the same connection.
+		deadline := time.Now().Add(30 * time.Second)
+		for {
+			reply, err = conn.RequestName(ID, dbus.NameFlagDoNotQueue)
+			if err != nil {
+				return err
+			}
+			if reply == dbus.RequestNameReplyPrimaryOwner {
+				break
+			}
+			if time.Now().After(deadline) {
+				return errors.New("The previous app is still closing. Open Model Uplink again in a moment.")
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
 	}
 	executable, err := os.Executable()
 	if err != nil {
 		return err
 	}
-	s := &session{agents: make(map[string]*worker), executable: executable, permission: requestBackground,
+	s := &session{agents: make(map[string]*worker), shutdown: make(chan struct{}), executable: executable, permission: requestBackground,
 		command: func(path string) *exec.Cmd { return exec.Command(executable, "_agent", "--config", path) }}
 	defer s.close()
 	if err = conn.Export(s, objectPath, sessionInterface); err != nil {
@@ -316,6 +396,8 @@ func Run(backgroundOnly bool) error {
 	defer tick.Stop()
 	for {
 		select {
+		case <-s.shutdown:
+			return nil
 		case <-ctx.Done():
 			return nil
 		case <-tick.C:

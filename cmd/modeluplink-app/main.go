@@ -7,6 +7,7 @@ package main
 import (
 	_ "embed"
 	"image/color"
+	"os"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -14,6 +15,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
+	"github.com/oscar-investmatic/modeluplink-client/internal/flatpak"
 )
 
 //go:embed icon.png
@@ -60,6 +62,12 @@ func (t uplinkTheme) Color(name fyne.ThemeColorName, _ fyne.ThemeVariant) color.
 var Version = "dev"
 
 func main() {
+	if flatpak.Enabled() && len(os.Args) == 2 && os.Args[1] == "--flatpak-update" {
+		if runUpdateWindow() {
+			os.Exit(flatpak.UpdateAcceptedExit)
+		}
+		return
+	}
 	release, ok := desktopInstance()
 	if !ok {
 		return
