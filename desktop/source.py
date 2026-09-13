@@ -42,9 +42,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tag")
     parser.add_argument("--field", choices=("revision", "source_url", "source_date_epoch"))
+    parser.add_argument("--output", type=Path, default=Path("dist/source.json"))
     args = parser.parse_args()
     info = identity(tag=args.tag)
-    output = ROOT / "dist/source.json"
+    output = ROOT / args.output
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(info, indent=2) + "\n")
     print(info[args.field] if args.field else json.dumps(info))

@@ -11,3 +11,6 @@ cmd/modeluplink-app/resource_windows_amd64.syso
 # Local development and lint caches.
 /.venv/
 /.ruff_cache/
+
+# Source metadata staged before GoReleaser creates dist.
+/.release/

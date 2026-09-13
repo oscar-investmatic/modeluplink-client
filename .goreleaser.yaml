@@ -2,9 +2,10 @@ version: 2
 project_name: modeluplink
 # No `go mod tidy` before-hook: the release must build exactly the committed
 # go.mod/go.sum. `-mod=readonly` makes any drift a hard failure.
+# Stage metadata outside dist: before-hooks run before its empty-directory check.
 before:
   hooks:
-    - python3 desktop/source.py --tag {{ .Tag }}
+    - python3 desktop/source.py --tag {{ .Tag }} --output .release/source.json
 report_sizes: true
 release:
   draft: true
@@ -34,7 +35,7 @@ archives:
         strip_parent: true
       - LICENSE
       - NOTICE
-      - src: dist/source.json
+      - src: .release/source.json
         strip_parent: true
 checksum:
   name_template: checksums.txt

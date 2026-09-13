@@ -1,5 +1,7 @@
 import importlib.util
+import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -19,6 +21,8 @@ class SourceTests(unittest.TestCase):
         self.git("config", "user.email", "fixture@example.invalid")
         (self.root / "desktop").mkdir()
         (self.root / "desktop/VERSION").write_text("1.2.3\n")
+        (self.root / "desktop/source.py").write_text(Path(source.__file__).read_text())
+        (self.root / ".gitignore").write_text("/dist/\n/.release/\n")
         self.git("add", ".")
         self.git("commit", "-qm", "Fixture")
         self.git("tag", "v1.2.3")
@@ -56,3 +60,33 @@ class SourceTests(unittest.TestCase):
     def test_refuses_parent_repository_identity(self):
         with self.assertRaisesRegex(ValueError, "own Git repository"):
             source.identity(self.root / "desktop")
+
+    def test_custom_output_keeps_goreleaser_directory_empty(self):
+        for _ in range(2):
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(self.root / "desktop/source.py"),
+                    "--tag",
+                    "v1.2.3",
+                    "--output",
+                    ".release/source.json",
+                ],
+                cwd=self.root,
+                check=True,
+                capture_output=True,
+            )
+        info = json.loads((self.root / ".release/source.json").read_text())
+        self.assertEqual(info["revision"], self.git("rev-parse", "HEAD"))
+        self.assertFalse((self.root / "dist").exists())
+        self.assertEqual(self.git("status", "--porcelain"), "")
+
+    def test_default_output_is_preserved_for_desktop_packaging(self):
+        subprocess.run(
+            [sys.executable, str(self.root / "desktop/source.py"), "--tag", "v1.2.3"],
+            cwd=self.root,
+            check=True,
+            capture_output=True,
+        )
+        info = json.loads((self.root / "dist/source.json").read_text())
+        self.assertEqual(info["revision"], self.git("rev-parse", "HEAD"))
