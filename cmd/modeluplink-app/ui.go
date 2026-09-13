@@ -562,6 +562,9 @@ func (u *ui) savePaused() {
 
 // copyKey copies a stored key, or creates one when this app has none.
 func (u *ui) copyKey(target endpoint) {
+	if u.errText == errKeyringRead.Error() {
+		u.errText = ""
+	}
 	if key, ok := u.memoryKeys[target.Slug]; ok {
 		u.copy(key, "API key")
 		return

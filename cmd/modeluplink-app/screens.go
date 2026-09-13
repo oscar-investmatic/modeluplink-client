@@ -79,7 +79,7 @@ func (u *ui) render() {
 		problem := widget.NewLabelWithStyle(u.errText, fyne.TextAlignCenter, fyne.TextStyle{})
 		problem.Wrapping = fyne.TextWrapWord
 		problem.Importance = widget.WarningImportance
-		items = append(items, problem)
+		items = append([]fyne.CanvasObject{problem}, items...)
 	}
 	if u.working() && !u.connecting {
 		items = append(items, container.NewCenter(widget.NewActivity()))
