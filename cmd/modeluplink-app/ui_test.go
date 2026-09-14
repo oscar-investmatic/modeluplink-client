@@ -75,6 +75,18 @@ func labels(u *ui) string {
 	}
 	return strings.Join(texts, "\n")
 }
+func TestInstalledUpdateTellsUserToCloseWindow(t *testing.T) {
+	u, _ := newTestUI(t)
+	u.render()
+	if strings.Contains(labels(u), updateInstalledNotice) {
+		t.Fatal("update notice shown before an update was installed")
+	}
+	u.updateInstalled = true
+	u.render()
+	if !strings.Contains(labels(u), "Close this window, then open Model Uplink again") {
+		t.Fatalf("update notice missing:\n%s", labels(u))
+	}
+}
 func TestPastingCodeSubmitsOnceWithoutClick(t *testing.T) {
 	u, h := newTestUI(t)
 	u.challenge = "challenge"

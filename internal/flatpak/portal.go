@@ -73,17 +73,29 @@ func permissionResponse(signal *dbus.Signal, path dbus.ObjectPath, automatic boo
 	}
 	code, ok := signal.Body[0].(uint32)
 	values, valid := signal.Body[1].(map[string]dbus.Variant)
-	if !ok || !valid || code != 0 {
-		return true, errors.New("Background permission was cancelled. Allow background activity to start sharing.")
+	if !ok || !valid {
+		return true, errors.New("The desktop returned an invalid background permission response.")
+	}
+	// A stored "no" and a declined dialog both arrive as a cancelled response
+	// carrying background=false, so read the result before the response code.
+	if result, present := values["background"]; present {
+		if allowed, _ := result.Value().(bool); !allowed {
+			return true, errBackgroundDenied
+		}
+	}
+	if code != 0 {
+		return true, errors.New("The background permission request closed before it finished. Start sharing again and choose Allow when your desktop asks.")
 	}
 	return true, checkPermission(values, automatic)
 }
+
+var errBackgroundDenied = errors.New("Model Uplink isn’t allowed to run in the background. Choose Allow if your desktop asks, or turn on background activity for Model Uplink in your desktop’s app settings, then start sharing again.")
 
 func checkPermission(values map[string]dbus.Variant, automatic bool) error {
 	allowed, _ := values["background"].Value().(bool)
 	auto, _ := values["autostart"].Value().(bool)
 	if !allowed {
-		return errors.New("Background activity was denied. Allow it in your desktop’s application permissions to start sharing.")
+		return errBackgroundDenied
 	}
 	if auto != automatic {
 		return errors.New("The desktop did not apply the requested automatic-start setting. Review its application permissions and try again.")

@@ -81,6 +81,7 @@ type ui struct {
 	connecting, busy                    bool
 	loading                             bool
 	helperMissing                       bool
+	updateInstalled                     bool
 	message, errText                    string
 	copied                              string
 	result                              *connectResult

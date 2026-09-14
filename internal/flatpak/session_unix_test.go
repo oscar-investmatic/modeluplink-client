@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
@@ -214,5 +215,34 @@ func TestPermissionIgnoresUnrelatedDBusSignals(t *testing.T) {
 	response := &dbus.Signal{Name: "org.freedesktop.portal.Request.Response", Path: path, Body: []interface{}{uint32(0), map[string]dbus.Variant{"background": dbus.MakeVariant(true), "autostart": dbus.MakeVariant(false)}}}
 	if handled, err := permissionResponse(response, path, false); !handled || err != nil {
 		t.Fatalf("valid response rejected: %v", err)
+	}
+}
+
+func TestPermissionDenialIsNotReportedAsCancelled(t *testing.T) {
+	path := dbus.ObjectPath("/org/freedesktop/portal/desktop/request/1_2/uplink_test")
+	respond := func(code uint32, values map[string]dbus.Variant) error {
+		t.Helper()
+		handled, err := permissionResponse(&dbus.Signal{Name: "org.freedesktop.portal.Request.Response", Path: path, Body: []interface{}{code, values}}, path, false)
+		if !handled {
+			t.Fatal("permission response ignored")
+		}
+		return err
+	}
+	// xdg-desktop-portal answers a stored "no" and a declined dialog with
+	// response 1 and background=false; KDE has also been seen returning 2.
+	denied := map[string]dbus.Variant{"background": dbus.MakeVariant(false), "autostart": dbus.MakeVariant(false)}
+	for _, code := range []uint32{0, 1, 2} {
+		if err := respond(code, denied); !errors.Is(err, errBackgroundDenied) {
+			t.Fatalf("code %d: denial reported as %v", code, err)
+		}
+	}
+	if err := respond(1, map[string]dbus.Variant{}); err == nil || errors.Is(err, errBackgroundDenied) || !strings.Contains(err.Error(), "closed before it finished") {
+		t.Fatalf("dismissed request reported as %v", err)
+	}
+	if err := respond(0, map[string]dbus.Variant{"background": dbus.MakeVariant(true), "autostart": dbus.MakeVariant(false)}); err != nil {
+		t.Fatalf("granted permission rejected: %v", err)
+	}
+	if strings.Contains(errBackgroundDenied.Error(), "cancel") {
+		t.Fatalf("denial wording still says cancelled: %q", errBackgroundDenied)
 	}
 }

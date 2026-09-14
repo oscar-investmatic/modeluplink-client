@@ -8,6 +8,7 @@ import (
 	_ "embed"
 	"image/color"
 	"os"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -31,6 +32,8 @@ const (
 	minWidth      = 420
 	minHeight     = 560
 )
+
+const updateInstalledNotice = "An update is installed. Close this window, then open Model Uplink again and choose Restart to update. Sharing keeps running until then."
 
 // uplinkTheme keeps the Mac app's dark, lime-accented look regardless of the
 // desktop's light or dark preference.
@@ -87,6 +90,13 @@ func main() {
 	w.SetContent(container.NewStack(floor, u.content))
 	u.refresh(false)
 	u.startBackgroundRefresh()
+	if flatpak.Enabled() {
+		u.run(func() {
+			flatpak.WatchUpdate(u.ctx, 5*time.Second, func() {
+				fyne.Do(func() { u.updateInstalled = true; u.render() })
+			})
+		})
+	}
 	if !configureDesktop(a, w, u) {
 		w.SetCloseIntercept(func() {
 			if u.working() {

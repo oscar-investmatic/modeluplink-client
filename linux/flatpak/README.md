@@ -43,6 +43,19 @@ connections stay stopped. The old session releases its agents before the new one
 starts. Choosing Later leaves the running version in place. Early preview builds
 without this handover protocol show manual recovery instructions instead.
 
+Turning on "Start sharing when I sign in" makes the desktop portal write
+`~/.config/autostart/com.modeluplink.app.desktop`; turning it off removes that
+file. `flatpak uninstall` cannot run app code, so it leaves the entry behind.
+Before uninstalling, turn the setting off, or remove the file afterwards:
+
+```sh
+flatpak uninstall --user com.modeluplink.app
+rm -f ~/.config/autostart/com.modeluplink.app.desktop
+```
+
+Add `--delete-data` to the uninstall command to also remove the profile in
+`~/.var/app/com.modeluplink.app`. Keys stay in the desktop keyring until removed there.
+
 Test in a fully initialized graphical session. Unit tests do not establish portal,
 keyring, login, or remote inference behavior. The earlier private preview passed
 several distro checks, but its evidence does not certify this extracted revision.

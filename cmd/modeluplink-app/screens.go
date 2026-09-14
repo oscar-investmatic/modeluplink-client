@@ -81,6 +81,14 @@ func (u *ui) render() {
 		problem.Importance = widget.WarningImportance
 		items = append([]fyne.CanvasObject{problem}, items...)
 	}
+	if u.updateInstalled {
+		// Clicking the app icon only refocuses this window, so the update
+		// prompt stays hidden until the user closes it.
+		notice := widget.NewLabelWithStyle(updateInstalledNotice, fyne.TextAlignCenter, fyne.TextStyle{})
+		notice.Wrapping = fyne.TextWrapWord
+		notice.Importance = widget.WarningImportance
+		items = append([]fyne.CanvasObject{notice}, items...)
+	}
 	if u.working() && !u.connecting {
 		items = append(items, container.NewCenter(widget.NewActivity()))
 		if u.message != "" {
