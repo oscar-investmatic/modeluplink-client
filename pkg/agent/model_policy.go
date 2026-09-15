@@ -109,10 +109,24 @@ type Activity struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// One inference at a time, with up to four waiting for at most 30 seconds.
-// Discovery does not take an inference slot. Cancelled clients leave the queue.
+const (
+	// maxWaiting bounds the queue behind the single inference slot.
+	maxWaiting = 4
+	// queueWait lets a request wait behind a slow generation, such as a
+	// thinking model writing a chat title. It stays under the 5-minute idle
+	// timeouts of the relay and the agent's TLS server.
+	queueWait = 2 * time.Minute
+	// perKeyOutstanding lets one credential hold the running slot and two
+	// queue places, so apps that send background requests with the same key
+	// queue instead of failing, while other friends always keep a place.
+	perKeyOutstanding = 3
+)
+
+// One inference at a time, with up to maxWaiting requests waiting for at most
+// queueWait. Discovery does not take an inference slot. Cancelled clients
+// leave the queue.
 type modelScheduler struct {
-	keys     map[string]bool
+	keys     map[string]int
 	mu       sync.Mutex
 	slot     chan struct{}
 	activity Activity
@@ -158,14 +172,14 @@ func (s *modelScheduler) acquire(ctx context.Context, model string) (func(), err
 		return s.release, nil
 	default:
 	}
-	if s.activity.Waiting >= 4 {
+	if s.activity.Waiting >= maxWaiting {
 		s.mu.Unlock()
 		return nil, errors.New("queue full")
 	}
 	s.activity.Waiting++
 	s.publishLocked()
 	s.mu.Unlock()
-	wait, cancel := context.WithTimeout(ctx, 30*time.Second)
+	wait, cancel := context.WithTimeout(ctx, queueWait)
 	defer cancel()
 	select {
 	case s.slot <- struct{}{}:
@@ -197,20 +211,26 @@ func (s *modelScheduler) release() {
 	s.mu.Unlock()
 }
 
-// At most one outstanding remote request per credential prevents one friend
-// from occupying every queue slot. The runtime still owns GPU scheduling.
+// A per-credential cap on outstanding requests prevents one friend from
+// occupying every queue slot. The runtime still owns GPU scheduling.
 func (s *modelScheduler) acquireForKey(ctx context.Context, model, key string) (func(), error) {
 	s.mu.Lock()
 	if s.keys == nil {
-		s.keys = map[string]bool{}
+		s.keys = map[string]int{}
 	}
-	if s.keys[key] {
+	if s.keys[key] >= perKeyOutstanding {
 		s.mu.Unlock()
-		return nil, errors.New("this key already has an outstanding request")
+		return nil, errors.New("this key already has too many outstanding requests")
 	}
-	s.keys[key] = true
+	s.keys[key]++
 	s.mu.Unlock()
-	forget := func() { s.mu.Lock(); delete(s.keys, key); s.mu.Unlock() }
+	forget := func() {
+		s.mu.Lock()
+		if s.keys[key]--; s.keys[key] <= 0 {
+			delete(s.keys, key)
+		}
+		s.mu.Unlock()
+	}
 	release, err := s.acquire(ctx, model)
 	if err != nil {
 		forget()

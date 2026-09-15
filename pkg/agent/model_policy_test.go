@@ -123,24 +123,69 @@ func TestModelSchedulerBoundsAndCancelsQueue(t *testing.T) {
 	next()
 }
 
-func TestOneFriendCannotFillTheQueue(t *testing.T) {
+func waitForQueue(t *testing.T, s *modelScheduler, want int) {
+	t.Helper()
+	deadline := time.Now().Add(3 * time.Second)
+	for {
+		s.mu.Lock()
+		waiting := s.activity.Waiting
+		s.mu.Unlock()
+		if waiting == want {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("queue length %d, want %d", waiting, want)
+		}
+		time.Sleep(time.Millisecond)
+	}
+}
+
+func TestOneFriendQueuesButCannotFillTheQueue(t *testing.T) {
 	s := newModelScheduler("")
 	release, err := s.acquireForKey(context.Background(), "large-model", "friend-one")
 	if err != nil {
 		t.Fatal(err)
 	}
+	// The same credential queues behind its own running request instead of
+	// failing: apps send background requests (titles, tags) with one key.
+	results := make(chan error, 3)
+	acquire := func(key string) {
+		next, err := s.acquireForKey(context.Background(), "large-model", key)
+		if next != nil {
+			next()
+		}
+		results <- err
+	}
+	for i := 1; i < perKeyOutstanding; i++ {
+		go acquire("friend-one")
+	}
+	waitForQueue(t, s, perKeyOutstanding-1)
 	if _, err = s.acquireForKey(context.Background(), "large-model", "friend-one"); err == nil {
-		t.Fatal("one friend occupied another slot")
+		t.Fatal("one friend exceeded its outstanding request cap")
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	if _, err = s.acquireForKey(ctx, "large-model", "friend-two"); err == nil {
 		t.Fatal("cancelled friend request admitted")
 	}
+	// Another friend still finds a place in the queue.
+	go acquire("friend-two")
+	waitForQueue(t, s, perKeyOutstanding)
 	release()
-	next, err := s.acquireForKey(context.Background(), "large-model", "friend-two")
-	if err != nil {
-		t.Fatal("cancelled request held its credential slot", err)
+	for i := 0; i < perKeyOutstanding; i++ {
+		select {
+		case err := <-results:
+			if err != nil {
+				t.Fatal("queued request failed:", err)
+			}
+		case <-time.After(3 * time.Second):
+			t.Fatal("queued request stuck")
+		}
 	}
-	next()
+	s.mu.Lock()
+	keys, activity := len(s.keys), s.activity
+	s.mu.Unlock()
+	if keys != 0 || activity.Running != 0 || activity.Waiting != 0 {
+		t.Fatalf("leaked credential or slot state: keys=%d %+v", keys, activity)
+	}
 }
